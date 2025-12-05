@@ -1,13 +1,62 @@
-# OS / editor files
+# Operating System Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
+
+# Editor and IDE Files
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
 
-# PHP / XAMPP
-vendor/
-.env
+# PHP Specific
 *.log
+*.cache
+vendor/
+composer.phar
 
-# Uploads
-public/assets/uploads/
+# Database Configuration (SENSITIVE)
+config/db.php
+config/*.local.php
+.env
+.env.local
+
+# User Uploads (Course Materials & Assignments)
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep
+
+# Temporary Files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~.php
+
+# Session Files
+sessions/
+tmp/
+
+# XAMPP Specific
+xampp/
+error_log
+access_log
+
+# Node modules (if you add any JS build tools later)
+node_modules/
+package-lock.json
+
+# Backup Files
+*.sql
+backups/
+*.zip
+*.tar.gz
