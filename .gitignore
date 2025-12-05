@@ -1,0 +1,13 @@
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# PHP / XAMPP
+vendor/
+.env
+*.log
+
+# Uploads
+public/assets/uploads/
