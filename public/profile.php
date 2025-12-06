@@ -1,20 +1,71 @@
 <?php
-include '../includes/auth_check.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . '/../config/db.php';
+include __DIR__ . '/../includes/auth_check.php';
+
+// Fetch user data from database
+$user_id = $_SESSION['user_id'];
+$stmt = query("SELECT * FROM users WHERE id = ?", [$user_id]);
+$user = $stmt->fetch();
+
+// Count user stats
+if ($user['role'] == 'student') {
+    $enrolled_courses = query("SELECT COUNT(*) as count FROM enrollments WHERE user_id = ?", [$user_id])->fetch()['count'];
+    $assignments_count = query("SELECT COUNT(*) as count FROM submissions WHERE student_id = ?", [$user_id])->fetch()['count'];
+    $avg_grade_result = query("SELECT AVG(grade) as avg FROM submissions WHERE student_id = ? AND grade IS NOT NULL", [$user_id])->fetch();
+    $avg_grade = $avg_grade_result['avg'] ?? 0;
+} else {
+    $enrolled_courses = query("SELECT COUNT(*) as count FROM courses WHERE instructor_id = ?", [$user_id])->fetch()['count'];
+    $assignments_count = query("SELECT COUNT(*) as count FROM assignments WHERE course_id IN (SELECT id FROM courses WHERE instructor_id = ?)", [$user_id])->fetch()['count'];
+    $avg_grade = 0;
+}
+
 $page_title = "Profile";
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
-
 ?>
 <main class="py-5">
     <div class="container">
+        
+        <!-- Success/Error Messages -->
+        <?php if (isset($_SESSION['success'])): ?>
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (isset($_SESSION['errors'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show">
+                <ul class="mb-0">
+                    <?php foreach($_SESSION['errors'] as $error): ?>
+                        <li><?php echo htmlspecialchars($error); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+                <?php unset($_SESSION['errors']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+        
         <div class="row g-4">
             <!-- Profile Info Card -->
             <div class="col-lg-4">
                 <div class="profile-card text-center">
-                    <img src="https://via.placeholder.com/150" alt="Profile" class="profile-avatar">
-                    <h2><?php echo htmlspecialchars($_SESSION['name'] ?? 'User'); ?></h2>
+                    <?php if (!empty($user['profile_picture'])): ?>
+                        <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Profile" class="profile-avatar">
+                    <?php else: ?>
+                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['name']); ?>&size=150&background=667eea&color=fff" alt="Profile" class="profile-avatar">
+                    <?php endif; ?>
+                    
+                    <h2><?php echo htmlspecialchars($user['name']); ?></h2>
                     <p class="text-muted text-capitalize">
-                        <i class="fas fa-user-tag"></i> <?php echo htmlspecialchars($_SESSION['role'] ?? 'Student'); ?>
+                        <i class="fas fa-user-tag"></i> <?php echo htmlspecialchars($user['role']); ?>
                     </p>
                     <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadPhotoModal">
                         <i class="fas fa-camera"></i> Change Photo
@@ -25,17 +76,19 @@ include __DIR__ . '/../includes/navbar.php';
                 <div class="bg-white rounded shadow-custom p-4 mt-4">
                     <h5 class="mb-3">Quick Stats</h5>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Courses</span>
-                        <strong class="text-primary">5</strong>
+                        <span><?php echo $user['role'] == 'student' ? 'Enrolled Courses' : 'My Courses'; ?></span>
+                        <strong class="text-primary"><?php echo $enrolled_courses; ?></strong>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Assignments</span>
-                        <strong class="text-success">12</strong>
+                        <span><?php echo $user['role'] == 'student' ? 'Submissions' : 'Assignments'; ?></span>
+                        <strong class="text-success"><?php echo $assignments_count; ?></strong>
                     </div>
+                    <?php if ($user['role'] == 'student'): ?>
                     <div class="d-flex justify-content-between">
                         <span>Average Grade</span>
-                        <strong class="text-info">87%</strong>
+                        <strong class="text-info"><?php echo $avg_grade ? round($avg_grade) . '%' : 'N/A'; ?></strong>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -50,23 +103,23 @@ include __DIR__ . '/../includes/navbar.php';
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Full Name</label>
-                                <input type="text" class="form-control" name="name" value="<?php echo htmlspecialchars($_SESSION['name'] ?? ''); ?>" required>
+                                <input type="text" class="form-control" name="name" value="<?php echo htmlspecialchars($user['name']); ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Email</label>
-                                <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?>" required>
+                                <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" name="phone" placeholder="+92 300 1234567">
+                                <input type="tel" class="form-control" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" placeholder="+92 300 1234567">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Date of Birth</label>
-                                <input type="date" class="form-control" name="dob">
+                                <input type="date" class="form-control" name="dob" value="<?php echo htmlspecialchars($user['dob'] ?? ''); ?>">
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Bio</label>
-                                <textarea class="form-control" name="bio" rows="3" placeholder="Tell us about yourself..."></textarea>
+                                <textarea class="form-control" name="bio" rows="3" placeholder="Tell us about yourself..."><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
                             </div>
                         </div>
 
@@ -130,9 +183,7 @@ include __DIR__ . '/../includes/navbar.php';
 
                     <hr>
 
-                    <button class="btn btn-danger" onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">
-                        <i class="fas fa-trash-alt"></i> Delete Account
-                    </button>
+                    <p class="text-muted small mb-2">Member since: <?php echo date('F d, Y', strtotime($user['created_at'])); ?></p>
                 </div>
             </div>
         </div>
@@ -165,4 +216,4 @@ include __DIR__ . '/../includes/navbar.php';
     </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

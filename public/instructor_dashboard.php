@@ -1,6 +1,48 @@
 <?php
 $required_role = 'instructor';
 include __DIR__ . '/../includes/auth_check.php';
+require_once __DIR__ . '/../config/db.php';
+
+// Get instructor's courses and stats
+$user_id = $_SESSION['user_id'];
+
+// Count total courses
+$total_courses = query("SELECT COUNT(*) as count FROM courses WHERE instructor_id = ?", [$user_id])->fetch()['count'];
+
+// Count total enrolled students across all courses
+$total_students = query("SELECT COUNT(DISTINCT e.user_id) as count FROM enrollments e 
+                         JOIN courses c ON e.course_id = c.id 
+                         WHERE c.instructor_id = ?", [$user_id])->fetch()['count'];
+
+// Count pending submissions
+$pending_grading = query("SELECT COUNT(*) as count FROM submissions s 
+                         JOIN assignments a ON s.assignment_id = a.id 
+                         JOIN courses c ON a.course_id = c.id 
+                         WHERE c.instructor_id = ? AND s.grade IS NULL", [$user_id])->fetch()['count'];
+
+// Count announcements
+$total_announcements = query("SELECT COUNT(*) as count FROM announcements WHERE instructor_id = ?", [$user_id])->fetch()['count'];
+
+// Get all courses by this instructor
+$courses_stmt = query("SELECT c.*, 
+                       (SELECT COUNT(*) FROM enrollments WHERE course_id = c.id) as enrolled_count
+                       FROM courses c 
+                       WHERE c.instructor_id = ? 
+                       ORDER BY c.created_at DESC", [$user_id]);
+$courses = $courses_stmt->fetchAll();
+
+// Get pending submissions for table
+$submissions_stmt = query("SELECT s.*, a.title as assignment_title, c.title as course_title, u.name as student_name,
+                          s.submitted_at
+                          FROM submissions s
+                          JOIN assignments a ON s.assignment_id = a.id
+                          JOIN courses c ON a.course_id = c.id
+                          JOIN users u ON s.student_id = u.id
+                          WHERE c.instructor_id = ? AND s.grade IS NULL
+                          ORDER BY s.submitted_at DESC
+                          LIMIT 10", [$user_id]);
+$submissions = $submissions_stmt->fetchAll();
+
 $page_title = "Instructor Dashboard";
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
@@ -41,28 +83,28 @@ include __DIR__ . '/../includes/navbar.php';
                 <div class="col-md-3">
                     <div class="stat-card">
                         <i class="fas fa-book-open text-primary"></i>
-                        <h3>0</h3>
+                        <h3><?php echo $total_courses; ?></h3>
                         <p>Total Courses</p>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card">
                         <i class="fas fa-users text-success"></i>
-                        <h3>0</h3>
+                        <h3><?php echo $total_students; ?></h3>
                         <p>Total Students</p>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card">
                         <i class="fas fa-clipboard-list text-warning"></i>
-                        <h3>0</h3>
+                        <h3><?php echo $pending_grading; ?></h3>
                         <p>Pending Grading</p>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card">
                         <i class="fas fa-bullhorn text-info"></i>
-                        <h3>0</h3>
+                        <h3><?php echo $total_announcements; ?></h3>
                         <p>Announcements</p>
                     </div>
                 </div>
@@ -78,55 +120,51 @@ include __DIR__ . '/../includes/navbar.php';
 
             <!-- Course Cards -->
             <div class="row g-4 mb-5">
-                <!-- Sample Course 1 (Replace with PHP loop from database) -->
-                <div class="col-md-4">
-                    <div class="course-card">
-                        <div class="course-card-img">
-                            <i class="fas fa-code"></i>
+                <?php if (empty($courses)): ?>
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You haven't created any courses yet. Click "Create New Course" to get started!
                         </div>
-                        <div class="course-card-body">
-                            <h3 class="course-card-title">Web Technologies</h3>
-                            <p class="course-card-text">Complete web development course covering HTML, CSS, JavaScript, PHP, and MySQL.</p>
-                            <div class="mb-3">
-                                <small class="text-muted">Course Code: CS401</small>
-                            </div>
-                            <div class="course-meta">
-                                <span><i class="fas fa-user-friends"></i> 45 Students</span>
-                                <div>
-                                    <a href="course_detail.php?id=1" class="btn btn-sm btn-primary">Manage</a>
-                                    <button class="btn btn-sm btn-outline-danger btn-delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($courses as $course): ?>
+                        <div class="col-md-4">
+                            <div class="course-card">
+                                <div class="course-card-img">
+                                    <i class="fas fa-<?php 
+                                        echo match($course['category']) {
+                                            'Programming' => 'code',
+                                            'Database' => 'database',
+                                            'Web Development' => 'globe',
+                                            'Mobile Development' => 'mobile-alt',
+                                            default => 'book'
+                                        };
+                                    ?>"></i>
+                                </div>
+                                <div class="course-card-body">
+                                    <h3 class="course-card-title"><?php echo htmlspecialchars($course['title']); ?></h3>
+                                    <p class="course-card-text"><?php echo htmlspecialchars(substr($course['description'], 0, 80)) . '...'; ?></p>
+                                    <div class="mb-3">
+                                        <small class="text-muted">Course Code: <?php echo htmlspecialchars($course['course_code']); ?></small>
+                                    </div>
+                                    <div class="course-meta">
+                                        <span><i class="fas fa-user-friends"></i> <?php echo $course['enrolled_count']; ?> Students</span>
+                                        <div>
+                                            <a href="course_detail.php?id=<?php echo $course['id']; ?>" class="btn btn-sm btn-primary">Manage</a>
+                                            <form method="POST" action="../controllers/course_controller.php" style="display:inline;">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="course_id" value="<?php echo $course['id']; ?>">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger btn-delete" onclick="return confirm('Are you sure you want to delete this course?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Sample Course 2 -->
-                <div class="col-md-4">
-                    <div class="course-card">
-                        <div class="course-card-img">
-                            <i class="fas fa-database"></i>
-                        </div>
-                        <div class="course-card-body">
-                            <h3 class="course-card-title">Database Systems</h3>
-                            <p class="course-card-text">Learn database design, SQL queries, and database management systems.</p>
-                            <div class="mb-3">
-                                <small class="text-muted">Course Code: CS302</small>
-                            </div>
-                            <div class="course-meta">
-                                <span><i class="fas fa-user-friends"></i> 38 Students</span>
-                                <div>
-                                    <a href="course_detail.php?id=2" class="btn btn-sm btn-primary">Manage</a>
-                                    <button class="btn btn-sm btn-outline-danger btn-delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
 
             <!-- Pending Submissions Section -->
@@ -143,24 +181,28 @@ include __DIR__ . '/../includes/navbar.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Assignment 1: HTML Basics</td>
-                            <td>Web Technologies</td>
-                            <td>John Doe</td>
-                            <td>2 hours ago</td>
-                            <td>
-                                <a href="assignment.php?id=1" class="btn btn-sm btn-success">Grade</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Project Proposal</td>
-                            <td>Database Systems</td>
-                            <td>Jane Smith</td>
-                            <td>1 day ago</td>
-                            <td>
-                                <a href="assignment.php?id=2" class="btn btn-sm btn-success">Grade</a>
-                            </td>
-                        </tr>
+                        <?php if (empty($submissions)): ?>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No pending submissions</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($submissions as $submission): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($submission['assignment_title']); ?></td>
+                                    <td><?php echo htmlspecialchars($submission['course_title']); ?></td>
+                                    <td><?php echo htmlspecialchars($submission['student_name']); ?></td>
+                                    <td><?php 
+                                        $time_ago = time() - strtotime($submission['submitted_at']);
+                                        if ($time_ago < 3600) echo floor($time_ago / 60) . ' minutes ago';
+                                        elseif ($time_ago < 86400) echo floor($time_ago / 3600) . ' hours ago';
+                                        else echo floor($time_ago / 86400) . ' days ago';
+                                    ?></td>
+                                    <td>
+                                        <a href="assignment.php?id=<?php echo $submission['assignment_id']; ?>" class="btn btn-sm btn-success">Grade</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
