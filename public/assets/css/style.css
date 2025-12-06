@@ -364,3 +364,10 @@ main {
 .shadow-custom {
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
+.course-card {
+    position: relative;
+}
+
+.course-card .badge {
+    font-size: 0.75rem;
+}
