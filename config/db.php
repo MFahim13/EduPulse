@@ -1,9 +1,10 @@
 <?php
 // Database configuration
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');  // Empty for XAMPP default
-define('DB_NAME', 'edupulse');
+define('DB_USER', 'eduPulse_user');
+define('DB_PASS', 'Xanpyt-kisbaw-6rixko');  // Use your actual password
+define('DB_NAME', 'eduPulse');
+
 
 // Create connection using PDO
 try {
