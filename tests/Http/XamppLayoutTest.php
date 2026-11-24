@@ -16,7 +16,7 @@ final class XamppLayoutTest extends HttpTestCase
     {
         $response = $this->get('/');
         $this->assertSame(200, $response->status);
-        $this->assertStringContainsString('Courses, assignments and grades in one place.', $response->body);
+        $this->assertStringContainsString('Courses, assignments and grades in one place.', strip_tags($response->body));
         $this->assertSame(200, $this->get('/public/login.php')->status);
     }
 

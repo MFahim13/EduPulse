@@ -15,7 +15,7 @@ include __DIR__ . '/../includes/navbar.php';
             <div class="row g-4 g-lg-5 align-items-center">
                 <div class="col-lg-6">
                     <p class="eyebrow">Learning management system</p>
-                    <h1>Courses, assignments and grades in one place.</h1>
+                    <h1>Courses, assignments and <span class="hl">grades</span> in one place.</h1>
                     <p class="lead">Instructors publish course material, set assignments and grade work with feedback. Students enroll, submit their files and follow their progress in every course.</p>
                     <div class="hero-actions">
                         <?php if ($dashboard): ?>

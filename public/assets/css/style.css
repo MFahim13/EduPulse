@@ -1,36 +1,40 @@
 /* ==========================================================================
-   EduPulse — "Campus Ink" theme
-   Crisp white surfaces, ink-blue accent, amber for deadlines.
-   Space Grotesk for headings, Inter for text. Hairlines instead of heavy shadows.
+   EduPulse — "Study Notebook" theme
+   Graph-paper bands, indigo ink, highlighter marks and offset "paper" shadows.
+   Bricolage Grotesque for headings, IBM Plex Sans for text. Sharp 4px corners.
    ========================================================================== */
 
 :root {
     /* Palette */
-    --ep-page: #f6f7fa;
+    --ep-page: #fbfbf8;
     --ep-surface: #ffffff;
-    --ep-ink: #161b2e;
-    --ep-ink-strong: #14205a;
-    --ep-muted: #5d6478;
-    --ep-line: #e3e6ee;
-    --ep-line-strong: #c9cedb;
-    --ep-accent: #2a3fb0;
-    --ep-accent-hover: #22349a;
-    --ep-accent-soft: #eef1fb;
-    --ep-amber-bg: #fff1d6;
-    --ep-amber-ink: #8a5a00;
+    --ep-ink: #1c1a33;
+    --ep-ink-strong: #1c1a33;
+    --ep-muted: #5f5c78;
+    --ep-line: #e6e4ef;
+    --ep-line-strong: #cfcbe0;
+    --ep-accent: #4b3fd1;
+    --ep-accent-hover: #3d32b8;
+    --ep-accent-soft: #efedfc;
+    --ep-amber-bg: #ffe3ef;
+    --ep-amber-ink: #9b1f55;
     --ep-success: #1f7a4d;
     --ep-success-soft: #e5f4ec;
     --ep-danger: #b42335;
     --ep-danger-soft: #fbe9ec;
 
     /* Type */
-    --ep-font-head: "Space Grotesk", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --ep-font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --ep-font-head: "Bricolage Grotesque", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --ep-font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
     /* Shape */
-    --ep-radius: 8px;
-    --ep-radius-sm: 6px;
-    --ep-shadow: 0 1px 2px rgba(22, 27, 46, 0.04), 0 4px 16px rgba(22, 27, 46, 0.05);
+    --ep-radius: 4px;
+    --ep-radius-sm: 4px;
+    --ep-shadow: 3px 3px 0 var(--ep-line-strong);
+    --ep-shadow-lift: 5px 5px 0 var(--ep-line-strong);
+    --ep-highlight: #fde272;
+    --ep-note: #fff9d9;
+    --ep-grid: #ecebf4;
 
     /* Bootstrap overrides */
     --bs-body-font-family: var(--ep-font-body);
@@ -40,19 +44,19 @@
     --bs-border-color: var(--ep-line);
     --bs-border-radius: var(--ep-radius-sm);
     --bs-border-radius-lg: var(--ep-radius);
-    --bs-primary: #2a3fb0;
-    --bs-primary-rgb: 42, 63, 176;
-    --bs-primary-text-emphasis: #1a2a7d;
-    --bs-primary-bg-subtle: #eef1fb;
-    --bs-primary-border-subtle: #c8d0f1;
+    --bs-primary: #4b3fd1;
+    --bs-primary-rgb: 75, 63, 209;
+    --bs-primary-text-emphasis: #2f2794;
+    --bs-primary-bg-subtle: #efedfc;
+    --bs-primary-border-subtle: #cfcbf3;
     --bs-success-rgb: 31, 122, 77;
     --bs-danger-rgb: 180, 35, 53;
     --bs-warning-rgb: 214, 150, 20;
-    --bs-link-color: #2a3fb0;
-    --bs-link-color-rgb: 42, 63, 176;
-    --bs-link-hover-color: #22349a;
-    --bs-link-hover-color-rgb: 34, 52, 154;
-    --bs-focus-ring-color: rgba(42, 63, 176, 0.25);
+    --bs-link-color: #4b3fd1;
+    --bs-link-color-rgb: 75, 63, 209;
+    --bs-link-hover-color: #3d32b8;
+    --bs-link-hover-color-rgb: 61, 50, 184;
+    --bs-focus-ring-color: rgba(75, 63, 209, 0.25);
 }
 
 /* ---------- Base ---------- */
@@ -73,6 +77,7 @@ main {
 h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
     font-family: var(--ep-font-head);
     font-weight: 700;
+    font-optical-sizing: auto;
     color: var(--ep-ink);
     letter-spacing: -0.01em;
     text-wrap: balance;
@@ -100,13 +105,24 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
     border-radius: var(--ep-radius-sm);
 }
 
+.btn-primary,
+.btn-success {
+    box-shadow: 2px 2px 0 var(--ep-ink);
+}
+
+.btn-primary:active,
+.btn-success:active {
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+
 .btn-primary {
     --bs-btn-bg: var(--ep-accent);
     --bs-btn-border-color: var(--ep-accent);
     --bs-btn-hover-bg: var(--ep-accent-hover);
     --bs-btn-hover-border-color: var(--ep-accent-hover);
-    --bs-btn-active-bg: #1c2c84;
-    --bs-btn-active-border-color: #1c2c84;
+    --bs-btn-active-bg: #3429a3;
+    --bs-btn-active-border-color: #3429a3;
     --bs-btn-disabled-bg: var(--ep-accent);
     --bs-btn-disabled-border-color: var(--ep-accent);
 }
@@ -147,7 +163,7 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 /* ---------- Navbar ---------- */
 .site-nav {
     background: var(--ep-surface);
-    border-bottom: 1px solid var(--ep-line);
+    border-bottom: 2px solid var(--ep-ink);
     padding-block: 0.6rem;
 }
 
@@ -203,7 +219,9 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 
 /* ---------- Page header band ---------- */
 .dashboard-header {
-    background: var(--ep-surface);
+    background-color: var(--ep-page);
+    background-image: linear-gradient(var(--ep-grid) 1px, transparent 1px), linear-gradient(90deg, var(--ep-grid) 1px, transparent 1px);
+    background-size: 20px 20px;
     border-bottom: 1px solid var(--ep-line);
     padding-block: 2rem 1.75rem;
 }
@@ -226,8 +244,9 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 .bg-white.rounded,
 .panel {
     background: var(--ep-surface) !important;
-    border: 1px solid var(--ep-line);
+    border: 1px solid var(--ep-line-strong);
     border-radius: var(--ep-radius) !important;
+    box-shadow: var(--ep-shadow) !important;
 }
 
 .panel-title {
@@ -245,7 +264,8 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 /* ---------- Stat tiles ---------- */
 .stat-card {
     background: var(--ep-surface);
-    border: 1px solid var(--ep-line);
+    border: 1px solid var(--ep-line-strong);
+    box-shadow: var(--ep-shadow);
     border-radius: var(--ep-radius);
     padding: 1.1rem 1.25rem;
     display: grid;
@@ -288,22 +308,23 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 /* ---------- Course cards ---------- */
 .course-card {
     background: var(--ep-surface);
-    border: 1px solid var(--ep-line);
+    border: 1px solid var(--ep-line-strong);
     border-radius: var(--ep-radius);
     overflow: hidden;
     height: 100%;
     display: flex;
     flex-direction: column;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: var(--ep-shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .course-card:hover {
-    border-color: var(--ep-line-strong);
-    box-shadow: var(--ep-shadow);
+    transform: translate(-2px, -2px);
+    box-shadow: var(--ep-shadow-lift);
 }
 
 .course-card-img {
-    height: 6px;
+    height: 5px;
     background: var(--ep-accent);
     font-size: 0;
     overflow: hidden;
@@ -354,7 +375,7 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 
 /* ---------- Progress ---------- */
 .progress {
-    --bs-progress-bg: #e4e8f6;
+    --bs-progress-bg: #ebe9f8;
     --bs-progress-bar-bg: var(--ep-accent);
     --bs-progress-border-radius: 999px;
 }
@@ -407,8 +428,8 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 
 .alert-info {
     --bs-alert-bg: var(--ep-accent-soft);
-    --bs-alert-color: #1a2a7d;
-    --bs-alert-border-color: #c8d0f1;
+    --bs-alert-color: #2f2794;
+    --bs-alert-border-color: #cfcbf3;
 }
 
 /* ---------- Accordion (course modules) ---------- */
@@ -500,7 +521,8 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 
 .auth-card {
     background: var(--ep-surface);
-    border: 1px solid var(--ep-line);
+    border: 1px solid var(--ep-line-strong);
+    box-shadow: var(--ep-shadow);
     border-radius: var(--ep-radius);
     padding: 2rem;
     width: 100%;
@@ -520,7 +542,8 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 /* ---------- Profile ---------- */
 .profile-card {
     background: var(--ep-surface);
-    border: 1px solid var(--ep-line);
+    border: 1px solid var(--ep-line-strong);
+    box-shadow: var(--ep-shadow);
     border-radius: var(--ep-radius);
     padding: 1.75rem 1.5rem;
 }
@@ -549,7 +572,9 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 
 /* ---------- Landing page ---------- */
 .landing-hero {
-    background: var(--ep-surface);
+    background-color: var(--ep-page);
+    background-image: linear-gradient(var(--ep-grid) 1px, transparent 1px), linear-gradient(90deg, var(--ep-grid) 1px, transparent 1px);
+    background-size: 20px 20px;
     border-bottom: 1px solid var(--ep-line);
     padding-block: 4rem 3.5rem;
 }
@@ -561,6 +586,11 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
     letter-spacing: 0.08em;
     color: var(--ep-accent);
     margin-bottom: 0.75rem;
+}
+
+.dashboard-header h1,
+.landing-hero h1 {
+    font-weight: 800;
 }
 
 .landing-hero h1 {
@@ -586,7 +616,8 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 
 .hero-preview {
     background: var(--ep-page);
-    border: 1px solid var(--ep-line);
+    border: 1px solid var(--ep-line-strong);
+    box-shadow: var(--ep-shadow);
     border-radius: var(--ep-radius);
     padding: 1.25rem;
     display: grid;
@@ -642,7 +673,8 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 
 .role-card {
     background: var(--ep-surface);
-    border: 1px solid var(--ep-line);
+    border: 1px solid var(--ep-line-strong);
+    box-shadow: var(--ep-shadow);
     border-radius: var(--ep-radius);
     padding: 1.5rem;
     height: 100%;
@@ -744,4 +776,22 @@ h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5 {
 
 .min-w-0 {
     min-width: 0;
+}
+
+/* ---------- Notebook details ---------- */
+.hl {
+    background: linear-gradient(transparent 58%, var(--ep-highlight) 58%);
+    padding: 0 0.08em;
+}
+
+.alert-flash.alert-success,
+.alert-success {
+    --bs-alert-bg: var(--ep-success-soft);
+    --bs-alert-border-color: #b9dfc9;
+}
+
+.note-card {
+    background: var(--ep-note);
+    border-left: 3px solid var(--ep-accent);
+    padding: 0.6rem 0.8rem;
 }
