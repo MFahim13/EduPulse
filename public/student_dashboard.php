@@ -16,8 +16,7 @@ $pending_assignments = query("SELECT COUNT(DISTINCT a.id) as count
                               [$user_id, $user_id])->fetch()['count'];
 
 // Get average grade
-$avg_grade_result = query("SELECT AVG(grade) as avg FROM submissions WHERE student_id = ? AND grade IS NOT NULL", [$user_id])->fetch();
-$avg_grade = $avg_grade_result['avg'] ?? 0;
+$avg_grade = student_average_percent((int) $user_id);
 
 // Get enrolled courses
 $enrolled_courses_stmt = query("SELECT c.*, u.name as instructor_name,
@@ -83,7 +82,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <div class="col-md-4">
                     <div class="stat-card">
                         <i class="fas fa-chart-line text-success"></i>
-                        <h3><?php echo $avg_grade ? round($avg_grade) . '%' : 'N/A'; ?></h3>
+                        <h3><?= $avg_grade === null ? '—' : e(round($avg_grade) . '%') ?></h3>
                         <p>Average Grade</p>
                     </div>
                 </div>
@@ -136,6 +135,18 @@ include __DIR__ . '/../includes/navbar.php';
                                             <small class="text-muted">
                                                 <i class="fas fa-user"></i> <?php echo htmlspecialchars($course['instructor_name']); ?>
                                             </small>
+                                        </div>
+                                        <?php $progress = student_course_progress((int) $user_id, (int) $course['id']); ?>
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                                <span>Progress</span>
+                                                <span><?= $progress['submitted'] ?> of <?= $progress['total'] ?> assignments submitted</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;" role="progressbar"
+                                                 aria-label="Assignments submitted in <?= e($course['title']) ?>"
+                                                 aria-valuenow="<?= $progress['percent'] ?>" aria-valuemin="0" aria-valuemax="100">
+                                                <div class="progress-bar" style="width: <?= $progress['percent'] ?>%"></div>
+                                            </div>
                                         </div>
                                         <div class="course-meta">
                                             <span><i class="fas fa-users"></i> <?php echo $course['enrolled_count']; ?> Students</span>

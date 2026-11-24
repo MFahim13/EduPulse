@@ -127,6 +127,18 @@ include __DIR__ . '/../includes/navbar.php';
                                     <div class="mb-3">
                                         <small class="text-muted">Course Code: <?php echo htmlspecialchars($course['course_code']); ?></small>
                                     </div>
+                                    <?php $stats = instructor_course_stats((int) $course['id']); ?>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span><?= $stats['submission_rate'] ?>% submitted</span>
+                                            <span><?= $stats['graded'] ?>/<?= $stats['submissions'] ?> graded</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;" role="progressbar"
+                                             aria-label="Submission rate for <?= e($course['title']) ?>"
+                                             aria-valuenow="<?= $stats['submission_rate'] ?>" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar bg-success" style="width: <?= $stats['submission_rate'] ?>%"></div>
+                                        </div>
+                                    </div>
                                     <div class="course-meta">
                                         <span><i class="fas fa-user-friends"></i> <?php echo $course['enrolled_count']; ?> Students</span>
                                         <div>
