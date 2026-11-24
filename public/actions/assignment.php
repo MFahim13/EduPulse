@@ -71,9 +71,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // ===== SUBMIT ASSIGNMENT (Student Only) =====
     if ($action == 'submit') {
-        $assignment_id = (int)$_POST['assignment_id'];
+        $assignment_id = (int) ($_POST['assignment_id'] ?? 0);
         $errors = [];
-        
+
+        if ($current['role'] !== 'student') {
+            flash('error', 'Only students can submit assignments.');
+            redirect('assignment.php?id=' . $assignment_id);
+        }
+
+        $target = query('SELECT id, course_id FROM assignments WHERE id = ?', [$assignment_id])->fetch();
+        if (!$target) {
+            flash('error', 'Assignment not found.');
+            redirect('student_dashboard.php');
+        }
+
+        if (!is_enrolled($current['id'], (int) $target['course_id'])) {
+            flash('error', 'You need to be enrolled in this course to submit.');
+            redirect('course_detail.php?id=' . $target['course_id']);
+        }
+
         // Check if already submitted
         $stmt = query("SELECT id FROM submissions WHERE assignment_id = ? AND student_id = ?", 
                       [$assignment_id, $user_id]);
@@ -123,21 +139,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errors[] = "Grade must be between 0 and 100";
         }
         
-        // Verify instructor owns this assignment
-        $stmt = query("SELECT a.course_id, c.instructor_id 
-                       FROM assignments a 
-                       JOIN courses c ON a.course_id = c.id 
-                       WHERE a.id = ?", [$assignment_id]);
-        $assignment = $stmt->fetch();
-        
-        if (!$assignment || $assignment['instructor_id'] != $user_id) {
-            $errors[] = "You don't have permission to grade this submission";
+        // The grader must own the course AND the submission must belong to this assignment
+        $assignment = query('SELECT course_id FROM assignments WHERE id = ?', [$assignment_id])->fetch();
+        $can_grade = $assignment
+            && owns_course($current['id'], (int) $assignment['course_id'])
+            && find_submission_for_assignment($submission_id, $assignment_id) !== null;
+
+        if (!$can_grade) {
+            $errors = ["You don't have permission to grade this submission."];
         }
-        
+
         if (empty($errors)) {
             try {
-                $sql = "UPDATE submissions SET grade = ?, feedback = ?, graded_at = NOW() WHERE id = ?";
-                query($sql, [$grade, $feedback, $submission_id]);
+                $sql = "UPDATE submissions SET grade = ?, feedback = ?, graded_at = NOW() WHERE id = ? AND assignment_id = ?";
+                query($sql, [$grade, $feedback, $submission_id, $assignment_id]);
                 
                 flash('success', "Submission graded successfully!");
                 redirect('assignment.php?id=' . $assignment_id);

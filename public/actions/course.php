@@ -33,6 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (empty($title) || empty($course_code) || empty($category) || empty($description)) {
             $errors[] = "All fields are required";
         }
+
+        if ($enrollment_limit < 1 || $enrollment_limit > 500) {
+            $errors[] = "Enrollment limit must be between 1 and 500.";
+        }
         
         // Check if course code already exists
         if (empty($errors)) {
@@ -84,6 +88,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             redirect('student_dashboard.php');
         }
         
+        $exists = query('SELECT id FROM courses WHERE id = ?', [$course_id])->fetchColumn();
+        if (!$exists) {
+            flash('error', 'Course not found.');
+            redirect('student_dashboard.php');
+        }
+
         // Check if already enrolled
         $stmt = query("SELECT id FROM enrollments WHERE user_id = ? AND course_id = ?", [$user_id, $course_id]);
         if ($stmt->rowCount() > 0) {

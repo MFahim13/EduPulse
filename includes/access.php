@@ -17,3 +17,10 @@ function can_view_course_content(array $user, int $courseId): bool
     return owns_course($user['id'], $courseId)
         || ($user['role'] === 'student' && is_enrolled($user['id'], $courseId));
 }
+
+/** The submission, but only if it belongs to the given assignment. */
+function find_submission_for_assignment(int $submissionId, int $assignmentId): ?array
+{
+    $row = query('SELECT * FROM submissions WHERE id = ? AND assignment_id = ?', [$submissionId, $assignmentId])->fetch();
+    return $row ?: null;
+}
