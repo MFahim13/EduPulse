@@ -192,13 +192,35 @@ include __DIR__ . '/../includes/navbar.php';
                     <!-- Announcements -->
                     <div class="bg-white rounded shadow-custom p-4 mb-4">
                         <h5 class="mb-3"><i class="fas fa-bullhorn"></i> Announcements</h5>
+                        <?php if ($is_instructor): ?>
+                            <form method="POST" action="<?= e(url('actions/announcement.php')) ?>" class="mb-4">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="create">
+                                <input type="hidden" name="course_id" value="<?= (int) $course_id ?>">
+                                <label for="announcementMessage" class="form-label visually-hidden">New announcement</label>
+                                <textarea class="form-control mb-2" id="announcementMessage" name="message" rows="3" maxlength="2000" placeholder="Share an update with your students…" required></textarea>
+                                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Post announcement</button>
+                            </form>
+                        <?php endif; ?>
                         <?php if (empty($announcements)): ?>
                             <p class="text-muted">No announcements yet.</p>
                         <?php else: ?>
                             <?php foreach ($announcements as $announcement): ?>
                                 <div class="border-bottom pb-3 mb-3">
-                                    <small class="text-muted"><?php echo date('M d, Y', strtotime($announcement['created_at'])); ?></small>
-                                    <p class="mb-0"><?php echo htmlspecialchars($announcement['message']); ?></p>
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <small class="text-muted"><?= e(date('M d, Y', strtotime($announcement['created_at']))) ?></small>
+                                        <?php if ($is_instructor): ?>
+                                            <form method="POST" action="<?= e(url('actions/announcement.php')) ?>">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="announcement_id" value="<?= (int) $announcement['id'] ?>">
+                                                <button type="submit" class="btn btn-link btn-sm text-danger p-0" data-confirm="Delete this announcement?" aria-label="Delete announcement">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                    <p class="mb-0"><?= nl2br(e($announcement['message'])) ?></p>
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>

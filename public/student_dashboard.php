@@ -39,6 +39,14 @@ $available_courses_stmt = query("SELECT c.*, u.name as instructor_name,
                                 LIMIT 6", [$user_id]);
 $available_courses = $available_courses_stmt->fetchAll();
 
+// Latest announcements from enrolled courses
+$recent_announcements = query("SELECT a.message, a.created_at, c.id AS course_id, c.title AS course_title
+                               FROM announcements a
+                               JOIN courses c ON c.id = a.course_id
+                               JOIN enrollments e ON e.course_id = a.course_id AND e.user_id = ?
+                               ORDER BY a.created_at DESC
+                               LIMIT 5", [$user_id])->fetchAll();
+
 $page_title = "Student Dashboard";
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
@@ -80,6 +88,22 @@ include __DIR__ . '/../includes/navbar.php';
                     </div>
                 </div>
             </div>
+
+            <!-- Recent Announcements -->
+            <?php if (!empty($recent_announcements)): ?>
+                <div class="bg-white rounded shadow-custom p-4 mb-4">
+                    <h2 class="h5 mb-3"><i class="fas fa-bullhorn text-primary"></i> Recent announcements</h2>
+                    <ul class="list-unstyled mb-0">
+                        <?php foreach ($recent_announcements as $item): ?>
+                            <li class="border-bottom pb-2 mb-2">
+                                <a href="<?= e(url('course_detail.php?id=' . $item['course_id'])) ?>" class="fw-semibold text-decoration-none"><?= e($item['course_title']) ?></a>
+                                <small class="text-muted ms-2"><?= e(date('M d', strtotime($item['created_at']))) ?></small>
+                                <p class="mb-0"><?= e($item['message']) ?></p>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
 
             <!-- My Enrolled Courses -->
             <div class="mb-4">
