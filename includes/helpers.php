@@ -31,6 +31,14 @@ function url(string $path): string
     return base_path() . '/' . ltrim($path, '/');
 }
 
+/** URL for a file in public/assets with ?v=<last change time>, so browsers fetch new versions. */
+function asset_url(string $path): string
+{
+    $file = PROJECT_ROOT . '/public/' . ltrim($path, '/');
+    $version = is_file($file) ? filemtime($file) : 0;
+    return url($path) . '?v=' . $version;
+}
+
 function redirect(string $path): never
 {
     header('Location: ' . url($path));

@@ -19,6 +19,6 @@
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234b3fd1'/><path d='M9 11l7-4 7 4-7 4z M11 14v5c0 1.5 2.5 3 5 3s5-1.5 5-3v-5' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/></svg>">
 
-    <link rel="stylesheet" href="<?= e(url('assets/css/style.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset_url('assets/css/style.css')) ?>">
 </head>
 <body>

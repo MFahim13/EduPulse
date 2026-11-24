@@ -76,6 +76,7 @@ final class SmokeTest extends HttpTestCase
     public function test_pages_link_assets_from_site_root(): void
     {
         $body = $this->get('/login.php')->body;
-        $this->assertStringContainsString('href="/assets/css/style.css"', $body);
+        $this->assertMatchesRegularExpression('#href="/assets/css/style\.css\?v=\d+"#', $body);
+        $this->assertMatchesRegularExpression('#src="/assets/js/main\.js\?v=\d+"#', $body);
     }
 }
