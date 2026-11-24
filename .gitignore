@@ -73,3 +73,6 @@ docs/.showcase-tmp/
 .superpowers/
 __pycache__/
 *.pyc
+
+# Private planning notes (kept locally, never published)
+docs/superpowers/

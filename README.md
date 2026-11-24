@@ -6,7 +6,7 @@ A learning management system for instructors and students, built with plain PHP 
 
 ![An instructor creates an assignment, a student submits it, the instructor grades it and the student sees the grade](docs/walkthrough.gif)
 
-Instructors create courses, upload materials, set assignments and grade submissions with feedback. Students enroll, hand in their work and follow their progress in every course. The project started as a semester project at COMSATS University Islamabad and was later rebuilt for security, tests and a cleaner interface.
+Instructors create courses, upload materials, set assignments and grade submissions with feedback. Students enroll, hand in their work and follow their progress in every course. It started as a semester project at COMSATS University Islamabad and was later rebuilt for security, tests and a cleaner interface.
 
 ## Features
 
