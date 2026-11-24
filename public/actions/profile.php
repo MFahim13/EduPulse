@@ -2,6 +2,11 @@
 
 require __DIR__ . '/../../includes/bootstrap.php';
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect('index.php');
+}
+csrf_verify();
+
 $current = require_login();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {

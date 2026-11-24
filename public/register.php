@@ -10,6 +10,7 @@ include __DIR__ . '/../includes/navbar.php';
 <?php include __DIR__ . '/../includes/flash.php'; ?>
 <h2>Create an Account</h2>
         <form id="registerForm" action="actions/auth.php" method="POST">
+            <?= csrf_field() ?>
             <input type="hidden" name="action" value="register">
             <div class="mb-3">
                 <label class="form-label" for="name">Full Name</label>

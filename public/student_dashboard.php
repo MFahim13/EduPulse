@@ -171,6 +171,7 @@ include __DIR__ . '/../includes/navbar.php';
                                                     <i class="fas fa-eye"></i> Preview
                                                 </a>
                                                 <form method="POST" action="actions/course.php" style="display:inline;">
+                                                    <?= csrf_field() ?>
                                                     <input type="hidden" name="action" value="enroll">
                                                     <input type="hidden" name="course_id" value="<?php echo $course['id']; ?>">
                                                     <button type="submit" class="btn btn-sm btn-success" 

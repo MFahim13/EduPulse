@@ -140,6 +140,7 @@ include __DIR__ . '/../includes/navbar.php';
                     <?php endif; ?>
                     
                     <form action="actions/assignment.php" method="POST" enctype="multipart/form-data">
+                        <?= csrf_field() ?>
                         <input type="hidden" name="action" value="submit">
                         <input type="hidden" name="assignment_id" value="<?php echo $assignment_id; ?>">
                         
@@ -215,6 +216,7 @@ include __DIR__ . '/../includes/navbar.php';
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <form action="actions/assignment.php" method="POST">
+                                                    <?= csrf_field() ?>
                                                     <input type="hidden" name="action" value="grade">
                                                     <input type="hidden" name="submission_id" value="<?php echo $sub['id']; ?>">
                                                     <input type="hidden" name="assignment_id" value="<?php echo $assignment_id; ?>">

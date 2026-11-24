@@ -34,7 +34,7 @@ include __DIR__ . '/../includes/navbar.php';
                     <?php if (!empty($user['profile_picture'])): ?>
                         <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Profile" class="profile-avatar">
                     <?php else: ?>
-                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['name']); ?>&size=150&background=667eea&color=fff" alt="Profile" class="profile-avatar">
+                        <div class="profile-avatar avatar-initials" aria-hidden="true"><?= e(initials($user['name'])) ?></div>
                     <?php endif; ?>
                     
                     <h2><?php echo htmlspecialchars($user['name']); ?></h2>
@@ -72,6 +72,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <div class="bg-white rounded shadow-custom p-4 mb-4">
                     <h3 class="mb-4"><i class="fas fa-user-edit"></i> Personal Information</h3>
                     <form action="actions/profile.php" method="POST">
+                        <?= csrf_field() ?>
                         <input type="hidden" name="action" value="update_profile">
                         
                         <div class="row g-3">
@@ -109,6 +110,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <div class="bg-white rounded shadow-custom p-4 mb-4">
                     <h3 class="mb-4"><i class="fas fa-lock"></i> Change Password</h3>
                     <form action="actions/profile.php" method="POST">
+                        <?= csrf_field() ?>
                         <input type="hidden" name="action" value="change_password">
                         
                         <div class="mb-3">
@@ -173,6 +175,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="actions/profile.php" method="POST" enctype="multipart/form-data">
+                <?= csrf_field() ?>
                 <input type="hidden" name="action" value="upload_photo">
                 <div class="modal-body">
                     <div class="mb-3">

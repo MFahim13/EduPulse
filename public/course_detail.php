@@ -89,6 +89,7 @@ include __DIR__ . '/../includes/navbar.php';
                             </button>
                         <?php elseif ($is_student && !$is_enrolled): ?>
                             <form method="POST" action="actions/course.php">
+                                <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="enroll">
                                 <input type="hidden" name="course_id" value="<?php echo $course_id; ?>">
                                 <button type="submit" class="btn btn-success btn-lg">
@@ -216,6 +217,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="actions/course.php" method="POST" enctype="multipart/form-data">
+                <?= csrf_field() ?>
                 <input type="hidden" name="action" value="add_module">
                 <input type="hidden" name="course_id" value="<?php echo $course_id; ?>">
                 <div class="modal-body">
@@ -247,6 +249,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="actions/assignment.php" method="POST" enctype="multipart/form-data">
+                <?= csrf_field() ?>
                 <input type="hidden" name="action" value="create">
                 <input type="hidden" name="course_id" value="<?php echo $course_id; ?>">
                 <div class="modal-body">

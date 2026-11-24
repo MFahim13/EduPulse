@@ -132,6 +132,7 @@ include __DIR__ . '/../includes/navbar.php';
                                         <div>
                                             <a href="course_detail.php?id=<?php echo $course['id']; ?>" class="btn btn-sm btn-primary">Manage</a>
                                             <form method="POST" action="actions/course.php" style="display:inline;">
+                                                <?= csrf_field() ?>
                                                 <input type="hidden" name="action" value="delete">
                                                 <input type="hidden" name="course_id" value="<?php echo $course['id']; ?>">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger btn-delete" onclick="return confirm('Are you sure you want to delete this course?')">
@@ -199,6 +200,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="actions/course.php" method="POST" enctype="multipart/form-data">
+                <?= csrf_field() ?>
                 <input type="hidden" name="action" value="create">
                 <div class="modal-body">
                     <div class="mb-3">

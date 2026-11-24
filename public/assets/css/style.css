@@ -371,3 +371,20 @@ main {
 .course-card .badge {
     font-size: 0.75rem;
 }
+
+/* Initials avatar (no third-party avatar service) */
+.avatar-initials {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 3rem;
+    letter-spacing: 0.05em;
+}
+
+.navbar .btn-link.nav-link {
+    border: 0;
+    text-decoration: none;
+}

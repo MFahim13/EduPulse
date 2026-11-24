@@ -2,6 +2,11 @@
 
 require __DIR__ . '/../../includes/bootstrap.php';
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect('index.php');
+}
+csrf_verify();
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $action = $_POST['action'] ?? '';
     
@@ -82,7 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             // Verify password
             if (password_verify($password, $user['password'])) {
-                // Set session
+                // New session ID on login prevents session fixation
+                session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['name'];
                 $_SESSION['email'] = $user['email'];
@@ -100,4 +106,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             redirect('login.php');
         }
     }
+
+    // ===== LOGOUT =====
+    if ($action == 'logout') {
+        $_SESSION = [];
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', [
+            'expires' => time() - 3600,
+            'path' => $params['path'],
+            'secure' => $params['secure'],
+            'httponly' => $params['httponly'],
+            'samesite' => $params['samesite'],
+        ]);
+        session_destroy();
+        redirect('login.php?message=logged_out');
+    }
 }
+
+redirect('index.php');

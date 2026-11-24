@@ -28,9 +28,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= e(url('logout.php')) ?>">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </a>
+                        <form method="POST" action="<?= e(url('actions/auth.php')) ?>" class="d-inline">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="action" value="logout">
+                            <button type="submit" class="nav-link btn btn-link">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
                     </li>
                 <?php else: ?>
                     <li class="nav-item">
