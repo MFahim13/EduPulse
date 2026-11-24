@@ -1,32 +1,42 @@
 <?php
-// Database configuration
-define('DB_HOST', 'localhost');
-define('DB_USER', 'eduPulse_user');
-define('DB_PASS', 'CHANGE_ME');  // Use your actual password
-define('DB_NAME', 'eduPulse');
+declare(strict_types=1);
 
+require_once __DIR__ . '/env.php';
 
-// Create connection using PDO
-try {
-    $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
-        DB_USER,
-        DB_PASS,
-        [
+/**
+ * Shared PDO connection, created on first use from environment settings.
+ */
+function db(): PDO
+{
+    static $pdo = null;
+
+    if ($pdo === null) {
+        $dsn = sprintf(
+            'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
+            env('DB_HOST', 'localhost'),
+            env('DB_PORT', '3306'),
+            env('DB_NAME', 'edupulse')
+        );
+
+        $pdo = new PDO($dsn, env('DB_USER', ''), env('DB_PASS', ''), [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false
-        ]
-    );
-} catch(PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+
+        $offset = (new DateTimeImmutable('now', new DateTimeZone(env('APP_TIMEZONE', 'UTC'))))->format('P');
+        $pdo->exec("SET time_zone = '{$offset}'");
+    }
+
+    return $pdo;
 }
 
-// Helper function for safe queries
-function query($sql, $params = []) {
-    global $pdo;
-    $stmt = $pdo->prepare($sql);
+/**
+ * Run a prepared statement and return it.
+ */
+function query(string $sql, array $params = []): PDOStatement
+{
+    $stmt = db()->prepare($sql);
     $stmt->execute($params);
     return $stmt;
 }
-?>

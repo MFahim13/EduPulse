@@ -1,0 +1,11 @@
+# Fallback for setups (e.g. XAMPP) that serve the project root instead of public/.
+# Only public/ may be reached over HTTP.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^$ public/ [L]
+    RewriteCond %{REQUEST_URI} !/public/
+    RewriteRule ^ - [F]
+</IfModule>
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>

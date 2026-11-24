@@ -25,15 +25,20 @@ desktop.ini
 vendor/
 composer.phar
 
-# Database Configuration (SENSITIVE)
-config/db.php
+# Local configuration (SENSITIVE) - credentials live only in .env
 config/*.local.php
 .env
 .env.local
 
-# User Uploads (Course Materials & Assignments)
+# User uploads (keep folder placeholders only)
 public/assets/uploads/*
 !public/assets/uploads/.gitkeep
+!public/assets/uploads/.htaccess
+!public/assets/uploads/profiles/
+public/assets/uploads/profiles/*
+!public/assets/uploads/profiles/.gitkeep
+storage/uploads/*/*
+!storage/uploads/*/.gitkeep
 
 # Temporary Files
 *.tmp
@@ -57,6 +62,12 @@ package-lock.json
 
 # Backup Files
 *.sql
+!database/*.sql
 backups/
 *.zip
 *.tar.gz
+
+# Tooling
+.phpunit.cache/
+docs/.showcase-tmp/
+.superpowers/
