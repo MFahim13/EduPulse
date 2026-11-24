@@ -1,5 +1,4 @@
 <?php
-
 require __DIR__ . '/../../includes/bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -8,165 +7,150 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 csrf_verify();
 
 $current = require_login();
+$action = $_POST['action'] ?? '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $action = $_POST['action'] ?? '';
-    $user_id = $_SESSION['user_id'];
-    
-    // ===== CREATE ASSIGNMENT (Instructor Only) =====
-    if ($action == 'create') {
-        if ($_SESSION['role'] != 'instructor') {
-            flash('error', "Only instructors can create assignments");
-            redirect('instructor_dashboard.php');
-        }
-        
-        $course_id = (int)$_POST['course_id'];
-        $title = trim($_POST['title']);
-        $description = trim($_POST['description']);
-        $due_date = $_POST['due_date'];
-        $max_points = (int)$_POST['max_points'];
-        
-        $errors = [];
-        
-        if (empty($title) || empty($description) || empty($due_date)) {
-            $errors[] = "All fields are required";
-        }
-        
-        // Check if user owns this course
-        $stmt = query("SELECT instructor_id FROM courses WHERE id = ?", [$course_id]);
-        $course = $stmt->fetch();
-        
-        if (!$course || $course['instructor_id'] != $user_id) {
-            $errors[] = "You don't have permission to create assignments for this course";
-        }
-        
-        // Optional attachment, stored only once everything else is valid
-        $file_path = null;
-        $has_attachment = isset($_FILES['assignment_file']) && (int) $_FILES['assignment_file']['error'] !== UPLOAD_ERR_NO_FILE;
-        if (empty($errors) && $has_attachment) {
-            try {
-                $file_path = store_upload($_FILES['assignment_file'], 'assignment')['key'];
-            } catch (UploadError $e) {
-                $errors[] = $e->getMessage();
-            }
-        }
-
-        if (empty($errors)) {
-            try {
-                $sql = "INSERT INTO assignments (course_id, title, description, due_date, max_points, file_path) 
-                        VALUES (?, ?, ?, ?, ?, ?)";
-                query($sql, [$course_id, $title, $description, $due_date, $max_points, $file_path]);
-                
-                flash('success', "Assignment created successfully!");
-                redirect('course_detail.php?id=' . $course_id);
-            } catch (Exception $e) {
-                flash('error', ["Database error: " . $e->getMessage()]);
-                redirect('course_detail.php?id=' . $course_id);
-            }
-        } else {
-            flash('error', $errors);
-            redirect('course_detail.php?id=' . $course_id);
+/** Parse a datetime-local value ("2026-05-01T14:30") into MySQL format, or null. */
+function parse_due_date(string $value): ?string
+{
+    foreach (['Y-m-d\TH:i', 'Y-m-d\TH:i:s', 'Y-m-d H:i:s', 'Y-m-d H:i'] as $format) {
+        $date = DateTimeImmutable::createFromFormat($format, $value);
+        if ($date !== false) {
+            return $date->format('Y-m-d H:i:s');
         }
     }
-    
-    // ===== SUBMIT ASSIGNMENT (Student Only) =====
-    if ($action == 'submit') {
-        $assignment_id = (int) ($_POST['assignment_id'] ?? 0);
-        $errors = [];
-
-        if ($current['role'] !== 'student') {
-            flash('error', 'Only students can submit assignments.');
-            redirect('assignment.php?id=' . $assignment_id);
-        }
-
-        $target = query('SELECT id, course_id FROM assignments WHERE id = ?', [$assignment_id])->fetch();
-        if (!$target) {
-            flash('error', 'Assignment not found.');
-            redirect('student_dashboard.php');
-        }
-
-        if (!is_enrolled($current['id'], (int) $target['course_id'])) {
-            flash('error', 'You need to be enrolled in this course to submit.');
-            redirect('course_detail.php?id=' . $target['course_id']);
-        }
-
-        // Check if already submitted
-        $stmt = query("SELECT id FROM submissions WHERE assignment_id = ? AND student_id = ?", 
-                      [$assignment_id, $user_id]);
-        if ($stmt->rowCount() > 0) {
-            $errors[] = "You have already submitted this assignment";
-        }
-        
-        // Store the file once the request itself is valid
-        $file_path = null;
-        if (empty($errors)) {
-            try {
-                $file_path = store_upload($_FILES['submission_file'] ?? ['error' => UPLOAD_ERR_NO_FILE], 'submission')['key'];
-            } catch (UploadError $e) {
-                $errors[] = $e->getMessage();
-            }
-        }
-
-        
-        if (empty($errors)) {
-            try {
-                $sql = "INSERT INTO submissions (assignment_id, student_id, file_path, submitted_at) 
-                        VALUES (?, ?, ?, NOW())";
-                query($sql, [$assignment_id, $user_id, $file_path]);
-                
-                flash('success', "Assignment submitted successfully!");
-                redirect('assignment.php?id=' . $assignment_id);
-            } catch (Exception $e) {
-                flash('error', ["Database error: " . $e->getMessage()]);
-                redirect('assignment.php?id=' . $assignment_id);
-            }
-        } else {
-            flash('error', $errors);
-            redirect('assignment.php?id=' . $assignment_id);
-        }
-    }
-    
-    // ===== GRADE SUBMISSION (Instructor Only) =====
-    if ($action == 'grade') {
-        $submission_id = (int)$_POST['submission_id'];
-        $assignment_id = (int)$_POST['assignment_id'];
-        $grade = (int)$_POST['grade'];
-        $feedback = trim($_POST['feedback'] ?? '');
-        
-        $errors = [];
-        
-        if ($grade < 0 || $grade > 100) {
-            $errors[] = "Grade must be between 0 and 100";
-        }
-        
-        // The grader must own the course AND the submission must belong to this assignment
-        $assignment = query('SELECT course_id FROM assignments WHERE id = ?', [$assignment_id])->fetch();
-        $can_grade = $assignment
-            && owns_course($current['id'], (int) $assignment['course_id'])
-            && find_submission_for_assignment($submission_id, $assignment_id) !== null;
-
-        if (!$can_grade) {
-            $errors = ["You don't have permission to grade this submission."];
-        }
-
-        if (empty($errors)) {
-            try {
-                $sql = "UPDATE submissions SET grade = ?, feedback = ?, graded_at = NOW() WHERE id = ? AND assignment_id = ?";
-                query($sql, [$grade, $feedback, $submission_id, $assignment_id]);
-                
-                flash('success', "Submission graded successfully!");
-                redirect('assignment.php?id=' . $assignment_id);
-            } catch (Exception $e) {
-                flash('error', ["Database error: " . $e->getMessage()]);
-                redirect('assignment.php?id=' . $assignment_id);
-            }
-        } else {
-            flash('error', $errors);
-            redirect('assignment.php?id=' . $assignment_id);
-        }
-    }
-    
-} else {
-    // If not POST request, redirect
-    redirect('index.php');
+    return null;
 }
+
+// ===== CREATE ASSIGNMENT (Instructor Only) =====
+if ($action === 'create') {
+    $course_id = (int) ($_POST['course_id'] ?? 0);
+    $title = trim((string) ($_POST['title'] ?? ''));
+    $description = trim((string) ($_POST['description'] ?? ''));
+    $due_date = parse_due_date(trim((string) ($_POST['due_date'] ?? '')));
+    $max_points = (int) ($_POST['max_points'] ?? 0);
+
+    if ($current['role'] !== 'instructor' || !owns_course($current['id'], $course_id)) {
+        flash('error', "You don't have permission to create assignments for this course.");
+        redirect('instructor_dashboard.php');
+    }
+
+    $errors = [];
+    if ($title === '' || $description === '') {
+        $errors[] = 'Title and instructions are required.';
+    }
+    if ($due_date === null) {
+        $errors[] = 'Please choose a valid due date.';
+    }
+    if ($max_points < 1 || $max_points > 1000) {
+        $errors[] = 'Max points must be between 1 and 1000.';
+    }
+
+    // Optional attachment, stored only once everything else is valid
+    $file_path = null;
+    $has_attachment = isset($_FILES['assignment_file']) && (int) $_FILES['assignment_file']['error'] !== UPLOAD_ERR_NO_FILE;
+    if (!$errors && $has_attachment) {
+        try {
+            $file_path = store_upload($_FILES['assignment_file'], 'assignment')['key'];
+        } catch (UploadError $e) {
+            $errors[] = $e->getMessage();
+        }
+    }
+
+    if ($errors) {
+        flash('error', $errors);
+        redirect('course_detail.php?id=' . $course_id);
+    }
+
+    query(
+        'INSERT INTO assignments (course_id, title, description, due_date, max_points, file_path) VALUES (?, ?, ?, ?, ?, ?)',
+        [$course_id, $title, $description, $due_date, $max_points, $file_path]
+    );
+    flash('success', 'Assignment created successfully!');
+    redirect('course_detail.php?id=' . $course_id);
+}
+
+// ===== SUBMIT ASSIGNMENT (Student Only) =====
+if ($action === 'submit') {
+    $assignment_id = (int) ($_POST['assignment_id'] ?? 0);
+
+    if ($current['role'] !== 'student') {
+        flash('error', 'Only students can submit assignments.');
+        redirect('assignment.php?id=' . $assignment_id);
+    }
+
+    $assignment = query('SELECT id, course_id FROM assignments WHERE id = ?', [$assignment_id])->fetch();
+    if (!$assignment) {
+        flash('error', 'Assignment not found.');
+        redirect('student_dashboard.php');
+    }
+
+    if (!is_enrolled($current['id'], (int) $assignment['course_id'])) {
+        flash('error', 'You need to be enrolled in this course to submit.');
+        redirect('course_detail.php?id=' . $assignment['course_id']);
+    }
+
+    $existing = query(
+        'SELECT id, file_path, grade FROM submissions WHERE assignment_id = ? AND student_id = ?',
+        [$assignment_id, $current['id']]
+    )->fetch();
+
+    if ($existing && $existing['grade'] !== null) {
+        flash('error', 'This submission has already been graded.');
+        redirect('assignment.php?id=' . $assignment_id);
+    }
+
+    try {
+        $stored = store_upload($_FILES['submission_file'] ?? ['error' => UPLOAD_ERR_NO_FILE], 'submission');
+    } catch (UploadError $e) {
+        flash('error', $e->getMessage());
+        redirect('assignment.php?id=' . $assignment_id);
+    }
+
+    $now = date('Y-m-d H:i:s');
+    if ($existing) {
+        query('UPDATE submissions SET file_path = ?, submitted_at = ? WHERE id = ?', [$stored['key'], $now, $existing['id']]);
+        delete_upload($existing['file_path']);
+        flash('success', 'Your submission was updated.');
+    } else {
+        query(
+            'INSERT INTO submissions (assignment_id, student_id, file_path, submitted_at) VALUES (?, ?, ?, ?)',
+            [$assignment_id, $current['id'], $stored['key'], $now]
+        );
+        flash('success', 'Assignment submitted successfully!');
+    }
+    redirect('assignment.php?id=' . $assignment_id);
+}
+
+// ===== GRADE SUBMISSION (Instructor Only) =====
+if ($action === 'grade') {
+    $submission_id = (int) ($_POST['submission_id'] ?? 0);
+    $assignment_id = (int) ($_POST['assignment_id'] ?? 0);
+    $grade_input = trim((string) ($_POST['grade'] ?? ''));
+    $feedback = trim((string) ($_POST['feedback'] ?? ''));
+
+    // The grader must own the course AND the submission must belong to this assignment
+    $assignment = query('SELECT course_id, max_points FROM assignments WHERE id = ?', [$assignment_id])->fetch();
+    $can_grade = $assignment
+        && owns_course($current['id'], (int) $assignment['course_id'])
+        && find_submission_for_assignment($submission_id, $assignment_id) !== null;
+
+    if (!$can_grade) {
+        flash('error', "You don't have permission to grade this submission.");
+        redirect('assignment.php?id=' . $assignment_id);
+    }
+
+    $max = (int) $assignment['max_points'];
+    if (!preg_match('/^\d+$/', $grade_input) || (int) $grade_input > $max) {
+        flash('error', "Grade must be between 0 and {$max}.");
+        redirect('assignment.php?id=' . $assignment_id);
+    }
+
+    query(
+        'UPDATE submissions SET grade = ?, feedback = ?, graded_at = ? WHERE id = ? AND assignment_id = ?',
+        [(int) $grade_input, $feedback, date('Y-m-d H:i:s'), $submission_id, $assignment_id]
+    );
+    flash('success', 'Submission graded successfully!');
+    redirect('assignment.php?id=' . $assignment_id);
+}
+
+redirect('index.php');

@@ -19,6 +19,7 @@ require_once __DIR__ . '/csrf.php';
 require_once __DIR__ . '/throttle.php';
 require_once __DIR__ . '/uploads.php';
 require_once __DIR__ . '/access.php';
+require_once __DIR__ . '/progress.php';
 
 configure_errors(env('APP_ENV', 'production'));
 

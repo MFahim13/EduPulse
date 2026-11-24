@@ -10,7 +10,7 @@ require_once PROJECT_ROOT . '/config/db.php';
 if (is_file(PROJECT_ROOT . '/database/seeder.php')) {
     require_once PROJECT_ROOT . '/database/seeder.php';
 }
-foreach (['helpers', 'csrf', 'throttle', 'uploads', 'access'] as $include) {
+foreach (['helpers', 'csrf', 'throttle', 'uploads', 'access', 'progress'] as $include) {
     if (is_file(PROJECT_ROOT . "/includes/{$include}.php")) {
         require_once PROJECT_ROOT . "/includes/{$include}.php";
     }

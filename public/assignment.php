@@ -105,8 +105,11 @@ include __DIR__ . '/../includes/navbar.php';
                 <?php if ($my_submission): ?>
                     <!-- Already Submitted -->
                     <div class="alert alert-info">
-                        <i class="fas fa-check-circle"></i> You submitted this assignment on 
-                        <strong><?php echo date('M d, Y h:i A', strtotime($my_submission['submitted_at'])); ?></strong>
+                        <i class="fas fa-check-circle"></i> You submitted this assignment on
+                        <strong><?= e(date('M d, Y h:i A', strtotime($my_submission['submitted_at']))) ?></strong>
+                        <?php if (is_late($my_submission['submitted_at'], $assignment['due_date'])): ?>
+                            <span class="badge bg-danger late-badge ms-1">Late</span>
+                        <?php endif; ?>
                     </div>
                     
                     <?php if ($my_submission['file_path']): ?>
@@ -118,7 +121,7 @@ include __DIR__ . '/../includes/navbar.php';
                     
                     <?php if ($my_submission['grade'] !== null): ?>
                         <div class="alert alert-success mt-3">
-                            <h5><i class="fas fa-star"></i> Grade: <?php echo htmlspecialchars($my_submission['grade']); ?>%</h5>
+                            <h5><i class="fas fa-star"></i> Grade: <?= e(format_grade((int) $my_submission['grade'], (int) $assignment['max_points'])) ?></h5>
                             <?php if ($my_submission['feedback']): ?>
                                 <hr>
                                 <p class="mb-0"><strong>Feedback:</strong></p>
@@ -127,8 +130,19 @@ include __DIR__ . '/../includes/navbar.php';
                         </div>
                     <?php else: ?>
                         <div class="alert alert-warning">
-                            <i class="fas fa-hourglass-half"></i> Your submission is pending grading.
+                            <i class="fas fa-hourglass-half"></i> Your submission is pending grading. You can replace your file until it's graded.
                         </div>
+                        <form action="<?= e(url('actions/assignment.php')) ?>" method="POST" enctype="multipart/form-data" class="mt-3">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="action" value="submit">
+                            <input type="hidden" name="assignment_id" value="<?= (int) $assignment_id ?>">
+                            <label class="form-label" for="replacementFile">Replace your file</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="replacementFile" name="submission_file" accept=".pdf,.doc,.docx,.zip" required>
+                                <button type="submit" class="btn btn-outline-primary"><i class="fas fa-sync-alt"></i> Resubmit</button>
+                            </div>
+                            <small class="text-muted">PDF, DOC, DOCX or ZIP · max 10 MB</small>
+                        </form>
                     <?php endif; ?>
                     
                 <?php else: ?>
@@ -185,7 +199,12 @@ include __DIR__ . '/../includes/navbar.php';
                                             <strong><?php echo htmlspecialchars($sub['student_name']); ?></strong><br>
                                             <small class="text-muted"><?php echo htmlspecialchars($sub['student_email']); ?></small>
                                         </td>
-                                        <td><?php echo date('M d, Y h:i A', strtotime($sub['submitted_at'])); ?></td>
+                                        <td>
+                                            <?= e(date('M d, Y h:i A', strtotime($sub['submitted_at']))) ?>
+                                            <?php if (is_late($sub['submitted_at'], $assignment['due_date'])): ?>
+                                                <span class="badge bg-danger late-badge ms-1">Late</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td>
                                             <?php if ($sub['file_path']): ?>
                                                 <a href="<?= e(url('download.php?type=submission&id=' . $sub['id'])) ?>" class="btn btn-sm btn-outline-primary">
@@ -195,7 +214,7 @@ include __DIR__ . '/../includes/navbar.php';
                                         </td>
                                         <td>
                                             <?php if ($sub['grade'] !== null): ?>
-                                                <span class="badge bg-success"><?php echo $sub['grade']; ?>%</span>
+                                                <span class="badge bg-success"><?= e(format_grade((int) $sub['grade'], (int) $assignment['max_points'])) ?></span>
                                             <?php else: ?>
                                                 <span class="badge bg-warning">Pending</span>
                                             <?php endif; ?>
@@ -223,8 +242,8 @@ include __DIR__ . '/../includes/navbar.php';
                                                     <div class="modal-body">
                                                         <p><strong>Student:</strong> <?php echo htmlspecialchars($sub['student_name']); ?></p>
                                                         <div class="mb-3">
-                                                            <label class="form-label">Grade (0-100)</label>
-                                                            <input type="number" class="form-control" name="grade" min="0" max="100" 
+                                                            <label class="form-label">Grade (0–<?= (int) $assignment['max_points'] ?> points)</label>
+                                                            <input type="number" class="form-control" name="grade" min="0" max="<?= (int) $assignment['max_points'] ?>" 
                                                                    value="<?php echo $sub['grade'] ?? ''; ?>" required>
                                                         </div>
                                                         <div class="mb-3">

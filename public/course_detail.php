@@ -294,7 +294,7 @@ include __DIR__ . '/../includes/navbar.php';
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Max Points</label>
-                                <input type="number" class="form-control" name="max_points" value="100" required>
+                                <input type="number" class="form-control" name="max_points" value="100" min="1" max="1000" required>
                             </div>
                         </div>
                     </div>
