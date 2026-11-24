@@ -1,0 +1,5 @@
+EduPulse sample reading list
+
+1. Course textbook, chapters 1-3
+2. Lecture slides from week 1
+3. Official documentation linked in the module
