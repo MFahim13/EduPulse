@@ -11,12 +11,11 @@ $user = $stmt->fetch();
 if ($user['role'] == 'student') {
     $enrolled_courses = query("SELECT COUNT(*) as count FROM enrollments WHERE user_id = ?", [$user_id])->fetch()['count'];
     $assignments_count = query("SELECT COUNT(*) as count FROM submissions WHERE student_id = ?", [$user_id])->fetch()['count'];
-    $avg_grade_result = query("SELECT AVG(grade) as avg FROM submissions WHERE student_id = ? AND grade IS NOT NULL", [$user_id])->fetch();
-    $avg_grade = $avg_grade_result['avg'] ?? 0;
+    $avg_grade = student_average_percent((int) $user_id);
 } else {
     $enrolled_courses = query("SELECT COUNT(*) as count FROM courses WHERE instructor_id = ?", [$user_id])->fetch()['count'];
     $assignments_count = query("SELECT COUNT(*) as count FROM assignments WHERE course_id IN (SELECT id FROM courses WHERE instructor_id = ?)", [$user_id])->fetch()['count'];
-    $avg_grade = 0;
+    $avg_grade = null;
 }
 
 $page_title = "Profile";
@@ -60,7 +59,7 @@ include __DIR__ . '/../includes/navbar.php';
                     <?php if ($user['role'] == 'student'): ?>
                     <div class="d-flex justify-content-between">
                         <span>Average Grade</span>
-                        <strong class="text-info"><?php echo $avg_grade ? round($avg_grade) . '%' : 'N/A'; ?></strong>
+                        <strong class="text-info"><?= $avg_grade === null ? 'N/A' : e(round($avg_grade) . '%') ?></strong>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -78,7 +77,7 @@ include __DIR__ . '/../includes/navbar.php';
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Full Name</label>
-                                <input type="text" class="form-control" name="name" value="<?php echo htmlspecialchars($user['name']); ?>" required>
+                                <input type="text" class="form-control" name="name" maxlength="100" value="<?php echo htmlspecialchars($user['name']); ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Email</label>
@@ -86,7 +85,7 @@ include __DIR__ . '/../includes/navbar.php';
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" placeholder="+92 300 1234567">
+                                <input type="tel" class="form-control" name="phone" maxlength="30" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" placeholder="+92 300 1234567">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Date of Birth</label>

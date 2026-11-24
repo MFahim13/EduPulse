@@ -1,10 +1,10 @@
 # Fallback for setups (e.g. XAMPP) that serve the project root instead of public/.
-# Only public/ may be reached over HTTP.
+# Only public/ may be reached over HTTP; the pattern is anchored to this directory,
+# so tricks like /tests/x.php/public/ (PATH_INFO) are refused too.
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^$ public/ [L]
-    RewriteCond %{REQUEST_URI} !/public/
-    RewriteRule ^ - [F]
+    RewriteRule !^public(/|$) - [F]
 </IfModule>
 <IfModule !mod_rewrite.c>
     Require all denied

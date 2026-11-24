@@ -73,7 +73,7 @@ docker compose exec app composer install
 docker compose exec app vendor/bin/phpunit
 ```
 
-There are 124 tests in three suites: unit tests for the helpers, integration tests against the database, and HTTP tests that drive the real app through Apache (logins, permissions, uploads, grading). Running the suite resets the local database to the demo data. GitHub Actions runs the lint and the full suite on every push.
+There are 133 tests in three suites: unit tests for the helpers, integration tests against the database, and HTTP tests that drive the real app through Apache (logins, permissions, uploads, grading). Running the suite resets the local database to the demo data. GitHub Actions runs the lint and the full suite on every push.
 
 ## Architecture
 
@@ -171,7 +171,7 @@ The original semester version had several gaps. This is what was fixed and why:
 - **Login abuse.** One generic "Invalid email or password." message means attackers can't tell which emails have accounts. Five failed attempts lock that email and IP pair for 15 minutes.
 - **Safe uploads.** Files are checked by extension and by their actual content, and stored under random names. Course files and submissions live outside the web root and are streamed by `download.php` only to the course owner, enrolled students or the student who submitted. Script execution is disabled in the public upload folder.
 - **Authorization on every action.** Instructors can only change their own courses. A grade can only be written to a submission that belongs to the assignment being graded. Students can only submit to courses they are enrolled in.
-- **No leaked internals.** Database errors are logged rather than shown, only `public/` is reachable over HTTP, and responses send `nosniff`, `Referrer-Policy` and frame-ancestor headers.
+- **No leaked internals.** Database errors are logged, and visitors see a friendly error page (set `APP_ENV=local` in `.env` to see details while developing). Only `public/` is reachable over HTTP, including in the XAMPP layout, which has its own tests. Responses send `nosniff`, `Referrer-Policy` and frame-ancestor headers.
 
 ## Tech stack
 

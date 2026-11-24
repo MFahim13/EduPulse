@@ -102,7 +102,7 @@ include __DIR__ . '/../includes/navbar.php';
             <h5>Instructions:</h5>
             <p><?php echo nl2br(htmlspecialchars($assignment['description'])); ?></p>
             
-            <?php if ($assignment['file_path']): ?>
+            <?php if ($assignment['file_path'] && can_view_course_content(current_user(), (int) $assignment['course_id'])): ?>
                 <div class="mt-3">
                     <a href="<?= e(url('download.php?type=assignment&id=' . $assignment['id'])) ?>" class="btn btn-outline-primary">
                         <i class="fas fa-download"></i> Download Assignment File

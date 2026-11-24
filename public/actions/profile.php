@@ -15,15 +15,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // ===== UPDATE PROFILE =====
     if ($action == 'update_profile') {
-        $name = trim($_POST['name']);
-        $email = strtolower(trim($_POST['email'] ?? ''));
-        $phone = trim($_POST['phone'] ?? '');
-        $dob = $_POST['dob'] ?? null;
-        $bio = trim($_POST['bio'] ?? '');
-        
+        $name = trim((string) ($_POST['name'] ?? ''));
+        $email = strtolower(trim((string) ($_POST['email'] ?? '')));
+        $phone = trim((string) ($_POST['phone'] ?? ''));
+        $dob_input = trim((string) ($_POST['dob'] ?? ''));
+        $bio = trim((string) ($_POST['bio'] ?? ''));
+
         // Validation
         $errors = [];
-        
+
+        // An empty date field means "not set"; anything else must be a real calendar date
+        $dob = null;
+        if ($dob_input !== '') {
+            $date = DateTimeImmutable::createFromFormat('!Y-m-d', $dob_input);
+            if ($date === false || $date->format('Y-m-d') !== $dob_input) {
+                $errors[] = 'Please enter a valid date of birth.';
+            } else {
+                $dob = $dob_input;
+            }
+        }
+        if (mb_strlen($name) > 100) {
+            $errors[] = 'Name must be at most 100 characters.';
+        }
+        if (mb_strlen($phone) > 30) {
+            $errors[] = 'Phone number must be at most 30 characters.';
+        }
+        if (mb_strlen($email) > 190) {
+            $errors[] = 'Email must be at most 190 characters.';
+        }
+
         if (empty($name) || empty($email)) {
             $errors[] = "Name and email are required";
         }
@@ -43,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Update if no errors
         if (empty($errors)) {
             $sql = "UPDATE users SET name = ?, email = ?, phone = ?, dob = ?, bio = ? WHERE id = ?";
-            query($sql, [$name, $email, $phone, $dob, $bio, $user_id]);
+            query($sql, [$name, $email, $phone === '' ? null : $phone, $dob, $bio, $user_id]);
             
             // Update session
             $_SESSION['name'] = $name;

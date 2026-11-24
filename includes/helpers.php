@@ -18,6 +18,13 @@ function base_path(): string
     return $dir === '.' ? '' : $dir;
 }
 
+/** URL path of the whole app: base_path() without a trailing /public (XAMPP serves the project root). */
+function app_root_path(): string
+{
+    $base = base_path();
+    return str_ends_with($base, '/public') ? substr($base, 0, -strlen('/public')) : $base;
+}
+
 /** Absolute URL path for a file inside public/. */
 function url(string $path): string
 {

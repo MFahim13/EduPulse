@@ -71,3 +71,5 @@ backups/
 .phpunit.cache/
 docs/.showcase-tmp/
 .superpowers/
+__pycache__/
+*.pyc

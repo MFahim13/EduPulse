@@ -206,4 +206,18 @@ final class UploadTest extends HttpTestCase
         $this->assertMatchesRegularExpression('#^assets/uploads/profiles/[0-9a-f]{32}\.png$#', $key);
         $this->assertSame(200, $this->get('/' . $key)->status);
     }
+
+    public function test_download_links_hidden_from_users_without_access(): void
+    {
+        $course = $this->courseId('MD401'); // student@ is not enrolled
+        $assignment = (int) $this->scalar("SELECT id FROM assignments WHERE title = 'Wireframe a Mobile App'");
+        query("UPDATE assignments SET file_path = 'assignments/x.pdf' WHERE id = ?", [$assignment]);
+
+        $this->loginAs('student@edupulse.test', 'Student123!');
+        $this->assertStringNotContainsString('download.php?type=material', $this->get("/course_detail.php?id={$course}")->body);
+        $this->assertStringNotContainsString('download.php?type=assignment', $this->get("/assignment.php?id={$assignment}")->body);
+
+        $enrolled = $this->courseId('CS101');
+        $this->assertStringContainsString('download.php?type=material', $this->get("/course_detail.php?id={$enrolled}")->body);
+    }
 }

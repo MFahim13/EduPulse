@@ -26,6 +26,7 @@ if (!$course) {
 
 $is_instructor = ($_SESSION['role'] == 'instructor' && $course['instructor_id'] == $_SESSION['user_id']);
 $is_student = ($_SESSION['role'] == 'student');
+$can_view_content = can_view_course_content(current_user(), $course_id);
 
 // Check if student is enrolled
 $is_enrolled = false;
@@ -152,10 +153,14 @@ include __DIR__ . '/../includes/navbar.php';
                                                     <ul class="list-unstyled">
                                                         <?php foreach ($module['materials'] as $material): ?>
                                                             <li class="mb-2 d-flex justify-content-between align-items-center gap-2">
-                                                                <a href="<?= e(url('download.php?type=material&id=' . $material['id'])) ?>">
-                                                                    <i class="fas fa-file-download"></i>
-                                                                    <?= e($material['file_name']) ?>
-                                                                </a>
+                                                                <?php if ($can_view_content): ?>
+                                                                    <a href="<?= e(url('download.php?type=material&id=' . $material['id'])) ?>">
+                                                                        <i class="fas fa-file-download"></i>
+                                                                        <?= e($material['file_name']) ?>
+                                                                    </a>
+                                                                <?php else: ?>
+                                                                    <span class="text-muted"><i class="fas fa-lock"></i> <?= e($material['file_name']) ?></span>
+                                                                <?php endif; ?>
                                                                 <?php if ($is_instructor): ?>
                                                                     <form method="POST" action="<?= e(url('actions/course.php')) ?>">
                                                                         <?= csrf_field() ?>
