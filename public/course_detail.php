@@ -45,6 +45,7 @@ foreach ($modules as &$module) {
     $materials_stmt = query("SELECT * FROM materials WHERE module_id = ?", [$module['id']]);
     $module['materials'] = $materials_stmt->fetchAll();
 }
+unset($module); // break the reference so later loops don't overwrite the last module
 
 // Get assignments
 $assignments_stmt = query("SELECT a.*, 
@@ -134,7 +135,7 @@ include __DIR__ . '/../includes/navbar.php';
                                                     <ul class="list-unstyled">
                                                         <?php foreach ($module['materials'] as $material): ?>
                                                             <li class="mb-2">
-                                                                <a href="<?php echo htmlspecialchars($material['file_path']); ?>" download>
+                                                                <a href="<?= e(url('download.php?type=material&id=' . $material['id'])) ?>">
                                                                     <i class="fas fa-file-download"></i> 
                                                                     <?php echo htmlspecialchars($material['file_name']); ?>
                                                                 </a>

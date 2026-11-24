@@ -40,26 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errors[] = "You don't have permission to create assignments for this course";
         }
         
-        // Handle file upload
+        // Optional attachment, stored only once everything else is valid
         $file_path = null;
-        if (isset($_FILES['assignment_file']) && $_FILES['assignment_file']['error'] == 0) {
-            $upload_dir = __DIR__ . '/../assets/uploads/assignments/';
-            if (!file_exists($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
-            }
-            
-            $file = $_FILES['assignment_file'];
-            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $new_name = 'assignment_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
-            $full_path = $upload_dir . $new_name;
-            
-            if (move_uploaded_file($file['tmp_name'], $full_path)) {
-                $file_path = 'assets/uploads/assignments/' . $new_name;
-            } else {
-                $errors[] = "Failed to upload assignment file";
+        $has_attachment = isset($_FILES['assignment_file']) && (int) $_FILES['assignment_file']['error'] !== UPLOAD_ERR_NO_FILE;
+        if (empty($errors) && $has_attachment) {
+            try {
+                $file_path = store_upload($_FILES['assignment_file'], 'assignment')['key'];
+            } catch (UploadError $e) {
+                $errors[] = $e->getMessage();
             }
         }
-        
+
         if (empty($errors)) {
             try {
                 $sql = "INSERT INTO assignments (course_id, title, description, due_date, max_points, file_path) 
@@ -90,39 +81,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errors[] = "You have already submitted this assignment";
         }
         
-        // Handle file upload
+        // Store the file once the request itself is valid
         $file_path = null;
-        if (isset($_FILES['submission_file']) && $_FILES['submission_file']['error'] == 0) {
-            $upload_dir = __DIR__ . '/../assets/uploads/submissions/';
-            if (!file_exists($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
+        if (empty($errors)) {
+            try {
+                $file_path = store_upload($_FILES['submission_file'] ?? ['error' => UPLOAD_ERR_NO_FILE], 'submission')['key'];
+            } catch (UploadError $e) {
+                $errors[] = $e->getMessage();
             }
-            
-            $file = $_FILES['submission_file'];
-            $allowed = ['pdf', 'doc', 'docx', 'zip'];
-            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            
-            if (!in_array($ext, $allowed)) {
-                $errors[] = "Invalid file type. Allowed: PDF, DOC, DOCX, ZIP";
-            }
-            
-            if ($file['size'] > 10 * 1024 * 1024) {
-                $errors[] = "File too large. Max size: 10MB";
-            }
-            
-            if (empty($errors)) {
-                $new_name = 'submission_' . $user_id . '_' . $assignment_id . '_' . time() . '.' . $ext;
-                $full_path = $upload_dir . $new_name;
-                
-                if (move_uploaded_file($file['tmp_name'], $full_path)) {
-                    $file_path = 'assets/uploads/submissions/' . $new_name;
-                } else {
-                    $errors[] = "Failed to upload file";
-                }
-            }
-        } else {
-            $errors[] = "Please select a file to upload";
         }
+
         
         if (empty($errors)) {
             try {

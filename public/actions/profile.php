@@ -103,69 +103,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // ===== UPLOAD PROFILE PHOTO =====
     if ($action == 'upload_photo') {
-        $errors = [];
-        
-        if (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] == 0) {
-            $file = $_FILES['profile_photo'];
-            $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
-            $max_size = 2 * 1024 * 1024; // 2MB
-            
-            // Validate file type
-            if (!in_array($file['type'], $allowed_types)) {
-                $errors[] = "Only JPG and PNG images are allowed";
-            }
-            
-            // Validate file size
-            if ($file['size'] > $max_size) {
-                $errors[] = "File size must be less than 2MB";
-            }
-            
-            // Upload file if no errors
-            if (empty($errors)) {
-                $upload_dir = __DIR__ . '/../assets/uploads/profiles/';
-                
-                // Create directory if not exists
-                if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
-                }
-                
-                // Generate unique filename
-                $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-                $new_filename = 'profile_' . $user_id . '_' . time() . '.' . $file_extension;
-                $file_path = $upload_dir . $new_filename;
-                
-                // Move uploaded file
-                if (move_uploaded_file($file['tmp_name'], $file_path)) {
-                    // Delete old profile picture if exists
-                    $stmt = query("SELECT profile_picture FROM users WHERE id = ?", [$user_id]);
-                    $old_pic = $stmt->fetch()['profile_picture'] ?? null;
-                    if ($old_pic && file_exists(__DIR__ . '/../' . $old_pic)) {
-                        unlink(__DIR__ . '/../' . $old_pic);
-                    }
-                    
-                    // Update database
-                    $db_path = 'assets/uploads/profiles/' . $new_filename;
-                    query("UPDATE users SET profile_picture = ? WHERE id = ?", [$db_path, $user_id]);
-                    
-                    // Update session
-                    $_SESSION['profile_picture'] = $db_path;
-                    flash('success', "Profile picture updated successfully!");
-                    
-                    redirect('profile.php');
-                } else {
-                    $errors[] = "Failed to upload file";
-                }
-            }
-        } else {
-            $errors[] = "Please select a file to upload";
-        }
-        
-        if (!empty($errors)) {
-            flash('error', $errors);
+        try {
+            $stored = store_upload($_FILES['profile_photo'] ?? ['error' => UPLOAD_ERR_NO_FILE], 'profile');
+        } catch (UploadError $e) {
+            flash('error', $e->getMessage());
             redirect('profile.php');
         }
+
+        $old_pic = query("SELECT profile_picture FROM users WHERE id = ?", [$user_id])->fetchColumn() ?: null;
+        query("UPDATE users SET profile_picture = ? WHERE id = ?", [$stored['key'], $user_id]);
+        delete_upload($old_pic);
+
+        $_SESSION['profile_picture'] = $stored['key'];
+        flash('success', "Profile picture updated successfully!");
+        redirect('profile.php');
     }
-    
+
 } else {
     // If not POST request, redirect to profile
     redirect('profile.php');

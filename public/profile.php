@@ -32,7 +32,7 @@ include __DIR__ . '/../includes/navbar.php';
             <div class="col-lg-4">
                 <div class="profile-card text-center">
                     <?php if (!empty($user['profile_picture'])): ?>
-                        <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Profile" class="profile-avatar">
+                        <img src="<?= e(url($user['profile_picture'])) ?>" alt="Profile photo of <?= e($user['name']) ?>" class="profile-avatar">
                     <?php else: ?>
                         <div class="profile-avatar avatar-initials" aria-hidden="true"><?= e(initials($user['name'])) ?></div>
                     <?php endif; ?>

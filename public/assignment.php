@@ -90,7 +90,7 @@ include __DIR__ . '/../includes/navbar.php';
             
             <?php if ($assignment['file_path']): ?>
                 <div class="mt-3">
-                    <a href="<?php echo htmlspecialchars($assignment['file_path']); ?>" class="btn btn-outline-primary" download>
+                    <a href="<?= e(url('download.php?type=assignment&id=' . $assignment['id'])) ?>" class="btn btn-outline-primary">
                         <i class="fas fa-download"></i> Download Assignment File
                     </a>
                 </div>
@@ -111,7 +111,7 @@ include __DIR__ . '/../includes/navbar.php';
                     
                     <?php if ($my_submission['file_path']): ?>
                         <p><strong>Submitted File:</strong></p>
-                        <a href="<?php echo htmlspecialchars($my_submission['file_path']); ?>" class="btn btn-sm btn-outline-primary mb-3" download>
+                        <a href="<?= e(url('download.php?type=submission&id=' . $my_submission['id'])) ?>" class="btn btn-sm btn-outline-primary mb-3">
                             <i class="fas fa-file-download"></i> Download Your Submission
                         </a>
                     <?php endif; ?>
@@ -188,7 +188,7 @@ include __DIR__ . '/../includes/navbar.php';
                                         <td><?php echo date('M d, Y h:i A', strtotime($sub['submitted_at'])); ?></td>
                                         <td>
                                             <?php if ($sub['file_path']): ?>
-                                                <a href="<?php echo htmlspecialchars($sub['file_path']); ?>" class="btn btn-sm btn-outline-primary" download>
+                                                <a href="<?= e(url('download.php?type=submission&id=' . $sub['id'])) ?>" class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-download"></i> Download
                                                 </a>
                                             <?php endif; ?>

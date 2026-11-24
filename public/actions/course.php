@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // ===== ADD MODULE (Instructor Only) =====
 if ($action == 'add_module') {
     $course_id = (int)$_POST['course_id'];
-    $module_title = trim($_POST['module_title']);
+    $module_title = trim((string) ($_POST['module_title'] ?? ''));
     
     // Check if user owns this course
     $stmt = query("SELECT instructor_id FROM courses WHERE id = ?", [$course_id]);
@@ -128,42 +128,39 @@ if ($action == 'add_module') {
     $stmt = query("SELECT COALESCE(MAX(module_order), 0) + 1 as next_order FROM modules WHERE course_id = ?", [$course_id]);
     $next_order = $stmt->fetch()['next_order'];
     
+    // Validate every file before saving anything
+    $files = uploaded_files('materials');
+    $upload_errors = [];
+    foreach ($files as $file) {
+        try {
+            validate_upload($file, 'material');
+        } catch (UploadError $e) {
+            $upload_errors[] = upload_original_name((string) $file['name']) . ': ' . $e->getMessage();
+        }
+    }
+    if ($module_title === '') {
+        $upload_errors[] = 'Module title is required.';
+    }
+    if ($upload_errors) {
+        flash('error', $upload_errors);
+        redirect('course_detail.php?id=' . $course_id);
+    }
+
     // Insert module
     try {
-        query("INSERT INTO modules (course_id, title, module_order) VALUES (?, ?, ?)", 
+        query("INSERT INTO modules (course_id, title, module_order) VALUES (?, ?, ?)",
               [$course_id, $module_title, $next_order]);
-        
         $module_id = (int) db()->lastInsertId();
-        
-        // Handle file uploads
-        if (isset($_FILES['materials']) && !empty($_FILES['materials']['name'][0])) {
-            $upload_dir = __DIR__ . '/../assets/uploads/materials/';
-            
-            if (!file_exists($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
-            }
-            
-            foreach ($_FILES['materials']['tmp_name'] as $key => $tmp_name) {
-                if ($_FILES['materials']['error'][$key] == 0) {
-                    $file_name = $_FILES['materials']['name'][$key];
-                    $file_type = $_FILES['materials']['type'][$key];
-                    $file_extension = pathinfo($file_name, PATHINFO_EXTENSION);
-                    $new_filename = 'material_' . time() . '_' . rand(1000, 9999) . '.' . $file_extension;
-                    
-                    if (move_uploaded_file($tmp_name, $upload_dir . $new_filename)) {
-                        $db_path = 'assets/uploads/materials/' . $new_filename;
-                        
-                        // Insert into materials table
-                        query("INSERT INTO materials (module_id, file_name, file_path, file_type) VALUES (?, ?, ?, ?)",
-                              [$module_id, $file_name, $db_path, $file_type]);
-                    }
-                }
-            }
+
+        foreach ($files as $file) {
+            $stored = store_upload($file, 'material');
+            query("INSERT INTO materials (module_id, file_name, file_path, file_type) VALUES (?, ?, ?, ?)",
+                  [$module_id, $stored['original'], $stored['key'], $stored['mime']]);
         }
-        
+
         flash('success', "Module added successfully!");
         redirect('course_detail.php?id=' . $course_id);
-        
+
     } catch (Exception $e) {
         flash('error', ["Database error: " . $e->getMessage()]);
         redirect('course_detail.php?id=' . $course_id);
