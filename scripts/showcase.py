@@ -115,7 +115,8 @@ SHOTS = [
 
 def resolve(page, target):
     if target == "course":
-        return f"course_detail.php?id={first_id(page, 'student_dashboard.php', 'a[href*=course_detail]')}"
+        card = ".course-card:has-text('Introduction to Programming') a[href*=course_detail]"
+        return f"course_detail.php?id={first_id(page, 'student_dashboard.php', card)}"
     if target == "graded":
         return f"assignment.php?id={_assignment_id('ER Diagram for a Library')}"
     if target == "grading":
@@ -148,6 +149,8 @@ def screenshots():
             if filename == "06-grading.png":
                 page.click("button[data-bs-target^='#gradeModal']")
                 page.wait_for_selector(".modal.show")
+                page.locator(".modal.show input[name=grade]").fill("18")
+                page.locator(".modal.show textarea[name=feedback]").fill("Well-named functions. Add a docstring to parse_marks().")
                 page.wait_for_timeout(300)
             page.screenshot(path=str(out / filename), full_page=viewport is not PHONE)
             print("saved", out / filename)
@@ -178,7 +181,7 @@ def walkthrough():
         page.goto(f"{BASE}/login.php"); snap(page, 2)
         page.fill("#email", INSTRUCTOR[0]); page.fill("#password", INSTRUCTOR[1]); snap(page)
         page.click("#loginForm button[type=submit]"); page.wait_for_load_state("networkidle"); snap(page, 3)
-        page.click("a[href*='course_detail.php']"); page.wait_for_load_state("networkidle"); snap(page, 2)
+        page.click(".course-card:has-text('Introduction to Programming') a:has-text('Manage')"); page.wait_for_load_state("networkidle"); snap(page, 2)
         page.click("button[data-bs-target='#addAssignmentModal']"); page.wait_for_selector("#addAssignmentModal.show"); snap(page)
         modal = page.locator("#addAssignmentModal")
         modal.locator("input[name=title]").fill("Recursion Practice"); snap(page)
@@ -191,7 +194,7 @@ def walkthrough():
         ctx = browser.new_context(viewport=view)
         page = ctx.new_page()
         login(page, STUDENT); snap(page, 3)
-        page.click("a[href*='course_detail.php']"); page.wait_for_load_state("networkidle"); snap(page, 2)
+        page.click(".course-card:has-text('Introduction to Programming') a:has-text('Open Course')"); page.wait_for_load_state("networkidle"); snap(page, 2)
         page.click("text=Recursion Practice"); page.wait_for_load_state("networkidle"); snap(page, 2)
         page.set_input_files("input[name=submission_file]", str(ROOT / "database" / "seed-files" / "student-submission.pdf")); snap(page)
         page.click("form:has(input[name=submission_file]) button[type=submit]"); page.wait_for_load_state("networkidle"); snap(page, 3)
@@ -200,7 +203,7 @@ def walkthrough():
         ctx = browser.new_context(viewport=view)
         page = ctx.new_page()
         login(page, INSTRUCTOR)
-        page.click("a[href*='course_detail.php']"); page.wait_for_load_state("networkidle")
+        page.click(".course-card:has-text('Introduction to Programming') a:has-text('Manage')"); page.wait_for_load_state("networkidle")
         page.click("text=Recursion Practice"); page.wait_for_load_state("networkidle"); snap(page, 2)
         page.click("button[data-bs-target^='#gradeModal']"); page.wait_for_selector(".modal.show"); snap(page)
         page.locator(".modal.show input[name=grade]").fill("18")
@@ -211,7 +214,7 @@ def walkthrough():
         ctx = browser.new_context(viewport=view)
         page = ctx.new_page()
         login(page, STUDENT)
-        page.click("a[href*='course_detail.php']"); page.wait_for_load_state("networkidle")
+        page.click(".course-card:has-text('Introduction to Programming') a:has-text('Open Course')"); page.wait_for_load_state("networkidle")
         page.click("text=Recursion Practice"); page.wait_for_load_state("networkidle"); snap(page, 5)
         ctx.close()
         browser.close()
