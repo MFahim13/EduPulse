@@ -1,17 +1,8 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-require_once __DIR__ . '/../config/db.php';
+require __DIR__ . '/../../includes/bootstrap.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../public/login.php');
-    exit();
-}
+$current = require_login();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $action = $_POST['action'] ?? '';
@@ -20,9 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // ===== CREATE ASSIGNMENT (Instructor Only) =====
     if ($action == 'create') {
         if ($_SESSION['role'] != 'instructor') {
-            $_SESSION['errors'] = ["Only instructors can create assignments"];
-            header('Location: ../public/instructor_dashboard.php');
-            exit();
+            flash('error', "Only instructors can create assignments");
+            redirect('instructor_dashboard.php');
         }
         
         $course_id = (int)$_POST['course_id'];
@@ -48,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Handle file upload
         $file_path = null;
         if (isset($_FILES['assignment_file']) && $_FILES['assignment_file']['error'] == 0) {
-            $upload_dir = __DIR__ . '/../public/assets/uploads/assignments/';
+            $upload_dir = __DIR__ . '/../assets/uploads/assignments/';
             if (!file_exists($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
@@ -71,18 +61,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         VALUES (?, ?, ?, ?, ?, ?)";
                 query($sql, [$course_id, $title, $description, $due_date, $max_points, $file_path]);
                 
-                $_SESSION['success'] = "Assignment created successfully!";
-                header('Location: ../public/course_detail.php?id=' . $course_id);
-                exit();
+                flash('success', "Assignment created successfully!");
+                redirect('course_detail.php?id=' . $course_id);
             } catch (Exception $e) {
-                $_SESSION['errors'] = ["Database error: " . $e->getMessage()];
-                header('Location: ../public/course_detail.php?id=' . $course_id);
-                exit();
+                flash('error', ["Database error: " . $e->getMessage()]);
+                redirect('course_detail.php?id=' . $course_id);
             }
         } else {
-            $_SESSION['errors'] = $errors;
-            header('Location: ../public/course_detail.php?id=' . $course_id);
-            exit();
+            flash('error', $errors);
+            redirect('course_detail.php?id=' . $course_id);
         }
     }
     
@@ -101,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Handle file upload
         $file_path = null;
         if (isset($_FILES['submission_file']) && $_FILES['submission_file']['error'] == 0) {
-            $upload_dir = __DIR__ . '/../public/assets/uploads/submissions/';
+            $upload_dir = __DIR__ . '/../assets/uploads/submissions/';
             if (!file_exists($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
@@ -138,18 +125,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         VALUES (?, ?, ?, NOW())";
                 query($sql, [$assignment_id, $user_id, $file_path]);
                 
-                $_SESSION['success'] = "Assignment submitted successfully!";
-                header('Location: ../public/assignment.php?id=' . $assignment_id);
-                exit();
+                flash('success', "Assignment submitted successfully!");
+                redirect('assignment.php?id=' . $assignment_id);
             } catch (Exception $e) {
-                $_SESSION['errors'] = ["Database error: " . $e->getMessage()];
-                header('Location: ../public/assignment.php?id=' . $assignment_id);
-                exit();
+                flash('error', ["Database error: " . $e->getMessage()]);
+                redirect('assignment.php?id=' . $assignment_id);
             }
         } else {
-            $_SESSION['errors'] = $errors;
-            header('Location: ../public/assignment.php?id=' . $assignment_id);
-            exit();
+            flash('error', $errors);
+            redirect('assignment.php?id=' . $assignment_id);
         }
     }
     
@@ -182,26 +166,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $sql = "UPDATE submissions SET grade = ?, feedback = ?, graded_at = NOW() WHERE id = ?";
                 query($sql, [$grade, $feedback, $submission_id]);
                 
-                $_SESSION['success'] = "Submission graded successfully!";
-                header('Location: ../public/assignment.php?id=' . $assignment_id);
-                exit();
+                flash('success', "Submission graded successfully!");
+                redirect('assignment.php?id=' . $assignment_id);
             } catch (Exception $e) {
-                $_SESSION['errors'] = ["Database error: " . $e->getMessage()];
-                header('Location: ../public/assignment.php?id=' . $assignment_id);
-                exit();
+                flash('error', ["Database error: " . $e->getMessage()]);
+                redirect('assignment.php?id=' . $assignment_id);
             }
         } else {
-            $_SESSION['errors'] = $errors;
-            header('Location: ../public/assignment.php?id=' . $assignment_id);
-            exit();
+            flash('error', $errors);
+            redirect('assignment.php?id=' . $assignment_id);
         }
     }
     
 } else {
     // If not POST request, redirect
-    header('Location: ../public/index.php');
-    exit();
+    redirect('index.php');
 }
-?>
-
-?>

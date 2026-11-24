@@ -1,9 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-include __DIR__ . '/../includes/auth_check.php';
-require_once __DIR__ . '/../config/db.php';
+require __DIR__ . '/../includes/bootstrap.php';
+require_login();
 
 $assignment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -56,34 +53,15 @@ if ($is_instructor) {
     $submissions = $stmt->fetchAll();
 }
 
-$page_title = htmlspecialchars($assignment['title']);
+$page_title = $assignment['title'];
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
 ?>
 <main class="py-5">
     <div class="container">
         
-        <!-- Success/Error Messages -->
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (isset($_SESSION['errors'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show">
-                <ul class="mb-0">
-                    <?php foreach($_SESSION['errors'] as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-                <?php unset($_SESSION['errors']); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <!-- Assignment Header -->
+<?php include __DIR__ . '/../includes/flash.php'; ?>
+<!-- Assignment Header -->
         <div class="bg-white rounded shadow-custom p-4 mb-4">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
@@ -161,7 +139,7 @@ include __DIR__ . '/../includes/navbar.php';
                         </div>
                     <?php endif; ?>
                     
-                    <form action="../controllers/assignment_controller.php" method="POST" enctype="multipart/form-data">
+                    <form action="actions/assignment.php" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="action" value="submit">
                         <input type="hidden" name="assignment_id" value="<?php echo $assignment_id; ?>">
                         
@@ -236,7 +214,7 @@ include __DIR__ . '/../includes/navbar.php';
                                                     <h5 class="modal-title">Grade Submission</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                 </div>
-                                                <form action="../controllers/assignment_controller.php" method="POST">
+                                                <form action="actions/assignment.php" method="POST">
                                                     <input type="hidden" name="action" value="grade">
                                                     <input type="hidden" name="submission_id" value="<?php echo $sub['id']; ?>">
                                                     <input type="hidden" name="assignment_id" value="<?php echo $assignment_id; ?>">

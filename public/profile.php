@@ -1,13 +1,6 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-require_once __DIR__ . '/../config/db.php';
-include __DIR__ . '/../includes/auth_check.php';
+require __DIR__ . '/../includes/bootstrap.php';
+require_login();
 
 // Fetch user data from database
 $user_id = $_SESSION['user_id'];
@@ -33,27 +26,8 @@ include __DIR__ . '/../includes/navbar.php';
 <main class="py-5">
     <div class="container">
         
-        <!-- Success/Error Messages -->
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (isset($_SESSION['errors'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show">
-                <ul class="mb-0">
-                    <?php foreach($_SESSION['errors'] as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-                <?php unset($_SESSION['errors']); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <div class="row g-4">
+<?php include __DIR__ . '/../includes/flash.php'; ?>
+<div class="row g-4">
             <!-- Profile Info Card -->
             <div class="col-lg-4">
                 <div class="profile-card text-center">
@@ -97,7 +71,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <!-- Personal Information -->
                 <div class="bg-white rounded shadow-custom p-4 mb-4">
                     <h3 class="mb-4"><i class="fas fa-user-edit"></i> Personal Information</h3>
-                    <form action="../controllers/profile_controller.php" method="POST">
+                    <form action="actions/profile.php" method="POST">
                         <input type="hidden" name="action" value="update_profile">
                         
                         <div class="row g-3">
@@ -134,7 +108,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <!-- Change Password -->
                 <div class="bg-white rounded shadow-custom p-4 mb-4">
                     <h3 class="mb-4"><i class="fas fa-lock"></i> Change Password</h3>
-                    <form action="../controllers/profile_controller.php" method="POST">
+                    <form action="actions/profile.php" method="POST">
                         <input type="hidden" name="action" value="change_password">
                         
                         <div class="mb-3">
@@ -198,7 +172,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <h5 class="modal-title">Upload Profile Photo</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="../controllers/profile_controller.php" method="POST" enctype="multipart/form-data">
+            <form action="actions/profile.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="upload_photo">
                 <div class="modal-body">
                     <div class="mb-3">

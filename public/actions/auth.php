@@ -1,11 +1,9 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-require_once __DIR__ . '/../config/db.php';
+
+require __DIR__ . '/../../includes/bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $action = $_POST['action'] ?? '';  // ← THIS WAS MISSING
+    $action = $_POST['action'] ?? '';
     
     // ===== REGISTER =====
     if ($action == 'register') {
@@ -54,16 +52,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             query($sql, [$name, $email, $hashed_password, $role]);
             
             // Set success message for login page
-            $_SESSION['success'] = "Registration successful! Please login with your credentials.";
+            flash('success', "Registration successful! Please login with your credentials.");
             
             // Redirect to login page (NOT auto-login)
-            header('Location: ../public/login.php');
-            exit();
+            redirect('login.php');
         } else {
             // If errors, redirect back to register page
-            $_SESSION['errors'] = $errors;
-            header('Location: ../public/register.php');
-            exit();
+            flash('error', $errors);
+            redirect('register.php');
         }
     }
     
@@ -74,9 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Validation
         if (empty($email) || empty($password)) {
-            $_SESSION['error'] = "Email and password are required";
-            header('Location: ../public/login.php');
-            exit();
+            flash('error', "Email and password are required");
+            redirect('login.php');
         }
         
         // Check user in database
@@ -95,22 +90,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['profile_picture'] = $user['profile_picture'];
                 
                 // Redirect based on role
-                if ($user['role'] == 'student') {
-                    header('Location: ../public/student_dashboard.php');
-                } else {
-                    header('Location: ../public/instructor_dashboard.php');
-                }
-                exit();
+                redirect($user['role'] === 'student' ? 'student_dashboard.php' : 'instructor_dashboard.php');
             } else {
-                $_SESSION['error'] = "Invalid password";
-                header('Location: ../public/login.php');
-                exit();
+                flash('error', "Invalid password");
+                redirect('login.php');
             }
         } else {
-            $_SESSION['error'] = "Email not found";
-            header('Location: ../public/login.php');
-            exit();
+            flash('error', "Email not found");
+            redirect('login.php');
         }
     }
 }
-?>

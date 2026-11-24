@@ -1,5 +1,5 @@
 <?php
-session_start();
+require __DIR__ . '/../includes/bootstrap.php';
 $page_title = "Register";
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
@@ -7,19 +7,9 @@ include __DIR__ . '/../includes/navbar.php';
 ?>
 <main class="auth-container">
     <div class="auth-card">
-        <?php if (isset($_SESSION['errors'])): ?>
-        <div class="alert alert-danger">
-        <ul class="mb-0">
-                <?php foreach($_SESSION['errors'] as $error): ?>
-                <li><?php echo htmlspecialchars($error); ?></li>
-            <?php endforeach; ?>
-        </ul>
-        </div>
-                <?php unset($_SESSION['errors']); ?>
-             <?php endif; ?>
-
-        <h2>Create an Account</h2>
-        <form id="registerForm" action="../controllers/auth_controller.php" method="POST">
+<?php include __DIR__ . '/../includes/flash.php'; ?>
+<h2>Create an Account</h2>
+        <form id="registerForm" action="actions/auth.php" method="POST">
             <input type="hidden" name="action" value="register">
             <div class="mb-3">
                 <label class="form-label" for="name">Full Name</label>
@@ -54,4 +44,4 @@ include __DIR__ . '/../includes/navbar.php';
         </form>
     </div>
 </main>
-<?php include '../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

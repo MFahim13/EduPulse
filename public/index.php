@@ -1,5 +1,5 @@
 <?php
-session_start();
+require __DIR__ . '/../includes/bootstrap.php';
 $page_title = "Welcome";
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
@@ -7,6 +7,7 @@ include __DIR__ . '/../includes/navbar.php';
 
 ?>
 <main>
+    <div class="container pt-3"><?php include __DIR__ . '/../includes/flash.php'; ?></div>
     <section class="hero-section">
         <div class="container">
             <h1>EduPulse – Learning Management System</h1>
@@ -46,4 +47,4 @@ include __DIR__ . '/../includes/navbar.php';
         </div>
     </section>
 </main>
-<?php include '../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

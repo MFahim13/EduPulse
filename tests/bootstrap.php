@@ -10,4 +10,9 @@ require_once PROJECT_ROOT . '/config/db.php';
 if (is_file(PROJECT_ROOT . '/database/seeder.php')) {
     require_once PROJECT_ROOT . '/database/seeder.php';
 }
+if (is_file(PROJECT_ROOT . '/includes/helpers.php')) {
+    require_once PROJECT_ROOT . '/includes/helpers.php';
+}
 require_once __DIR__ . '/Integration/IntegrationTestCase.php';
+require_once __DIR__ . '/Http/HttpResponse.php';
+require_once __DIR__ . '/Http/HttpTestCase.php';

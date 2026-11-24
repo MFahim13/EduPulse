@@ -1,7 +1,6 @@
 <?php
-$required_role = 'student';
-include __DIR__ . '/../includes/auth_check.php';
-require_once __DIR__ . '/../config/db.php';
+require __DIR__ . '/../includes/bootstrap.php';
+require_role('student');
 
 $user_id = $_SESSION['user_id'];
 
@@ -56,27 +55,8 @@ include __DIR__ . '/../includes/navbar.php';
     <section class="py-4">
         <div class="container">
             
-            <!-- Success/Error Messages -->
-            <?php if (isset($_SESSION['success'])): ?>
-                <div class="alert alert-success alert-dismissible fade show">
-                    <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-            
-            <?php if (isset($_SESSION['errors'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show">
-                    <ul class="mb-0">
-                        <?php foreach($_SESSION['errors'] as $error): ?>
-                            <li><?php echo htmlspecialchars($error); ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                    <?php unset($_SESSION['errors']); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-
-            <!-- Stats Cards -->
+<?php include __DIR__ . '/../includes/flash.php'; ?>
+<!-- Stats Cards -->
             <div class="row g-4 mb-4">
                 <div class="col-md-4">
                     <div class="stat-card">
@@ -190,7 +170,7 @@ include __DIR__ . '/../includes/navbar.php';
                                                 <a href="course_detail.php?id=<?php echo $course['id']; ?>" class="btn btn-sm btn-outline-primary me-1">
                                                     <i class="fas fa-eye"></i> Preview
                                                 </a>
-                                                <form method="POST" action="../controllers/course_controller.php" style="display:inline;">
+                                                <form method="POST" action="actions/course.php" style="display:inline;">
                                                     <input type="hidden" name="action" value="enroll">
                                                     <input type="hidden" name="course_id" value="<?php echo $course['id']; ?>">
                                                     <button type="submit" class="btn btn-sm btn-success" 

@@ -1,7 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require __DIR__ . '/../includes/bootstrap.php';
 $page_title = "Login";
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
@@ -10,23 +8,8 @@ include __DIR__ . '/../includes/navbar.php';
     <div class="auth-card">
         <h2>Login to EduPulse</h2>
         
-        <!-- SUCCESS MESSAGE -->
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <!-- ERROR MESSAGE -->
-        <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show">
-                <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <form id="loginForm" action="../controllers/auth_controller.php" method="POST">
+<?php include __DIR__ . '/../includes/flash.php'; ?>
+<form id="loginForm" action="actions/auth.php" method="POST">
             <input type="hidden" name="action" value="login">
             <div class="mb-3">
                 <label class="form-label" for="email">Email</label>

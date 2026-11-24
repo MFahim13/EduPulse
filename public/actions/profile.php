@@ -1,19 +1,9 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-require_once __DIR__ . '/../config/db.php';
+require __DIR__ . '/../../includes/bootstrap.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../public/login.php');
-    exit();
-}
+$current = require_login();
 
-// Only process if POST request
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $action = $_POST['action'] ?? '';
     $user_id = $_SESSION['user_id'];
@@ -53,14 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Update session
             $_SESSION['name'] = $name;
             $_SESSION['email'] = $email;
-            $_SESSION['success'] = "Profile updated successfully!";
+            flash('success', "Profile updated successfully!");
             
-            header('Location: ../public/profile.php');
-            exit();
+            redirect('profile.php');
         } else {
-            $_SESSION['errors'] = $errors;
-            header('Location: ../public/profile.php');
-            exit();
+            flash('error', $errors);
+            redirect('profile.php');
         }
     }
     
@@ -100,13 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             query("UPDATE users SET password = ? WHERE id = ?", [$hashed_password, $user_id]);
             
-            $_SESSION['success'] = "Password changed successfully!";
-            header('Location: ../public/profile.php');
-            exit();
+            flash('success', "Password changed successfully!");
+            redirect('profile.php');
         } else {
-            $_SESSION['errors'] = $errors;
-            header('Location: ../public/profile.php');
-            exit();
+            flash('error', $errors);
+            redirect('profile.php');
         }
     }
     
@@ -131,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             // Upload file if no errors
             if (empty($errors)) {
-                $upload_dir = __DIR__ . '/../public/assets/uploads/profiles/';
+                $upload_dir = __DIR__ . '/../assets/uploads/profiles/';
                 
                 // Create directory if not exists
                 if (!file_exists($upload_dir)) {
@@ -148,8 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     // Delete old profile picture if exists
                     $stmt = query("SELECT profile_picture FROM users WHERE id = ?", [$user_id]);
                     $old_pic = $stmt->fetch()['profile_picture'] ?? null;
-                    if ($old_pic && file_exists(__DIR__ . '/../public/' . $old_pic)) {
-                        unlink(__DIR__ . '/../public/' . $old_pic);
+                    if ($old_pic && file_exists(__DIR__ . '/../' . $old_pic)) {
+                        unlink(__DIR__ . '/../' . $old_pic);
                     }
                     
                     // Update database
@@ -158,10 +144,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     // Update session
                     $_SESSION['profile_picture'] = $db_path;
-                    $_SESSION['success'] = "Profile picture updated successfully!";
+                    flash('success', "Profile picture updated successfully!");
                     
-                    header('Location: ../public/profile.php');
-                    exit();
+                    redirect('profile.php');
                 } else {
                     $errors[] = "Failed to upload file";
                 }
@@ -171,15 +156,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         if (!empty($errors)) {
-            $_SESSION['errors'] = $errors;
-            header('Location: ../public/profile.php');
-            exit();
+            flash('error', $errors);
+            redirect('profile.php');
         }
     }
     
 } else {
     // If not POST request, redirect to profile
-    header('Location: ../public/profile.php');
-    exit();
+    redirect('profile.php');
 }
-?>
