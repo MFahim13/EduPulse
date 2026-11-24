@@ -116,7 +116,7 @@ include __DIR__ . '/../includes/navbar.php';
                     <div class="row g-4 mb-5">
                         <?php foreach ($enrolled_courses as $course): ?>
                             <div class="col-md-4">
-                                <div class="course-card">
+                                <div class="course-card" data-category="<?= e($course['category']) ?>">
                                     <div class="course-card-img">
                                         <i class="fas fa-<?php 
                                             echo match($course['category']) {
@@ -177,7 +177,7 @@ include __DIR__ . '/../includes/navbar.php';
                     <div class="row g-4">
                         <?php foreach ($available_courses as $course): ?>
                             <div class="col-md-4">
-                                <div class="course-card">
+                                <div class="course-card" data-category="<?= e($course['category']) ?>">
                                     <div class="course-card-img">
                                         <i class="fas fa-<?php 
                                             echo match($course['category']) {

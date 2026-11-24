@@ -85,7 +85,7 @@ include __DIR__ . '/../includes/navbar.php';
                     <?php foreach ($courses as $course): ?>
                         <?php $full = (int) $course['enrolled_count'] >= (int) $course['enrollment_limit']; ?>
                         <div class="col-md-6 col-lg-4">
-                            <div class="course-card h-100">
+                            <div class="course-card h-100" data-category="<?= e($course['category']) ?>">
                                 <div class="course-card-img">
                                     <i class="fas fa-<?= e($category_icons[$course['category']] ?? 'book') ?>"></i>
                                 </div>

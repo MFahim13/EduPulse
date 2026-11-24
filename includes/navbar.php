@@ -1,55 +1,40 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<?php
+$nav_user = current_user();
+$nav_page = basename($_SERVER['SCRIPT_NAME'] ?? '');
+$nav_link = static function (string $file, string $icon, string $label) use ($nav_page): string {
+    $active = $nav_page === $file;
+    return '<li class="nav-item"><a class="nav-link' . ($active ? ' active' : '') . '" href="' . e(url($file)) . '"'
+        . ($active ? ' aria-current="page"' : '') . '><i class="fas ' . $icon . '"></i> ' . e($label) . '</a></li>';
+};
+?>
+<nav class="navbar navbar-expand-lg site-nav">
     <div class="container">
         <a class="navbar-brand" href="<?= e(url('index.php')) ?>">
-            <i class="fas fa-graduation-cap"></i> EduPulse
+            <span class="brand-mark"><i class="fas fa-graduation-cap"></i></span> EduPulse
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <?php if ($_SESSION['role'] == 'student'): ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?= e(url('student_dashboard.php')) ?>">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                    <?php else: ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?= e(url('instructor_dashboard.php')) ?>">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= e(url('courses.php')) ?>">
-                            <i class="fas fa-compass"></i> Browse
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= e(url('profile.php')) ?>">
-                            <i class="fas fa-user"></i> Profile
-                        </a>
-                    </li>
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+                <?php if ($nav_user): ?>
+                    <?= $nav_link($nav_user['role'] === 'student' ? 'student_dashboard.php' : 'instructor_dashboard.php', 'fa-gauge', 'Dashboard') ?>
+                    <?= $nav_link('courses.php', 'fa-compass', 'Browse') ?>
+                    <?= $nav_link('profile.php', 'fa-user', 'Profile') ?>
                     <li class="nav-item">
                         <form method="POST" action="<?= e(url('actions/auth.php')) ?>" class="d-inline">
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="logout">
                             <button type="submit" class="nav-link btn btn-link">
-                                <i class="fas fa-sign-out-alt"></i> Logout
+                                <i class="fas fa-arrow-right-from-bracket"></i> Logout
                             </button>
                         </form>
                     </li>
                 <?php else: ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= e(url('index.php')) ?>">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= e(url('login.php')) ?>">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-light text-primary ms-2" href="<?= e(url('register.php')) ?>">Sign Up</a>
+                    <?= $nav_link('index.php', 'fa-house', 'Home') ?>
+                    <?= $nav_link('login.php', 'fa-right-to-bracket', 'Login') ?>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-primary btn-sm px-3" href="<?= e(url('register.php')) ?>">Sign up</a>
                     </li>
                 <?php endif; ?>
             </ul>

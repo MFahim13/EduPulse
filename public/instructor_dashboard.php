@@ -109,7 +109,7 @@ include __DIR__ . '/../includes/navbar.php';
                 <?php else: ?>
                     <?php foreach ($courses as $course): ?>
                         <div class="col-md-4">
-                            <div class="course-card">
+                            <div class="course-card" data-category="<?= e($course['category']) ?>">
                                 <div class="course-card-img">
                                     <i class="fas fa-<?php 
                                         echo match($course['category']) {

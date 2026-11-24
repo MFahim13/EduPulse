@@ -61,9 +61,9 @@ include __DIR__ . '/../includes/navbar.php';
 <?php include __DIR__ . '/../includes/flash.php'; ?>
 <!-- Assignment Header -->
         <div class="bg-white rounded shadow-custom p-4 mb-4">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                    <h1><?php echo htmlspecialchars($assignment['title']); ?></h1>
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                <div class="min-w-0">
+                    <h1 class="h2"><?php echo htmlspecialchars($assignment['title']); ?></h1>
                     <p class="text-muted mb-0">
                         <i class="fas fa-book"></i> <?php echo htmlspecialchars($assignment['course_title']); ?> | 
                         <i class="fas fa-user"></i> <?php echo htmlspecialchars($assignment['instructor_name']); ?>
