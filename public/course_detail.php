@@ -8,8 +8,7 @@ $page_title = "Course Detail";
 $course_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($course_id == 0) {
-    header('Location: index.php');
-    exit();
+    redirect('index.php');
 }
 
 // Fetch course details
@@ -21,9 +20,8 @@ $stmt = query("SELECT c.*, u.name as instructor_name,
 $course = $stmt->fetch();
 
 if (!$course) {
-    $_SESSION['errors'] = ["Course not found"];
-    header('Location: index.php');
-    exit();
+    flash('error', 'Course not found.');
+    redirect(current_user()['role'] === 'instructor' ? 'instructor_dashboard.php' : 'student_dashboard.php');
 }
 
 $is_instructor = ($_SESSION['role'] == 'instructor' && $course['instructor_id'] == $_SESSION['user_id']);
@@ -88,6 +86,9 @@ include __DIR__ . '/../includes/navbar.php';
                             <button class="btn btn-outline-primary mb-2" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
                                 <i class="fas fa-tasks"></i> Create Assignment
                             </button>
+                            <button class="btn btn-outline-secondary mb-2" data-bs-toggle="modal" data-bs-target="#editCourseModal">
+                                <i class="fas fa-pen"></i> Edit Course
+                            </button>
                         <?php elseif ($is_student && !$is_enrolled): ?>
                             <form method="POST" action="actions/course.php">
                                 <?= csrf_field() ?>
@@ -129,16 +130,36 @@ include __DIR__ . '/../includes/navbar.php';
                                         </h2>
                                         <div id="module<?php echo $module['id']; ?>" class="accordion-collapse collapse <?php echo $index == 0 ? 'show' : ''; ?>" data-bs-parent="#courseModules">
                                             <div class="accordion-body">
+                                                <?php if ($is_instructor): ?>
+                                                    <form method="POST" action="<?= e(url('actions/course.php')) ?>" class="text-end mb-2">
+                                                        <?= csrf_field() ?>
+                                                        <input type="hidden" name="action" value="delete_module">
+                                                        <input type="hidden" name="module_id" value="<?= (int) $module['id'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="Delete this module and all of its materials?">
+                                                            <i class="fas fa-trash-alt"></i> Delete module
+                                                        </button>
+                                                    </form>
+                                                <?php endif; ?>
                                                 <?php if (empty($module['materials'])): ?>
                                                     <p class="text-muted">No materials uploaded yet.</p>
                                                 <?php else: ?>
                                                     <ul class="list-unstyled">
                                                         <?php foreach ($module['materials'] as $material): ?>
-                                                            <li class="mb-2">
+                                                            <li class="mb-2 d-flex justify-content-between align-items-center gap-2">
                                                                 <a href="<?= e(url('download.php?type=material&id=' . $material['id'])) ?>">
-                                                                    <i class="fas fa-file-download"></i> 
-                                                                    <?php echo htmlspecialchars($material['file_name']); ?>
+                                                                    <i class="fas fa-file-download"></i>
+                                                                    <?= e($material['file_name']) ?>
                                                                 </a>
+                                                                <?php if ($is_instructor): ?>
+                                                                    <form method="POST" action="<?= e(url('actions/course.php')) ?>">
+                                                                        <?= csrf_field() ?>
+                                                                        <input type="hidden" name="action" value="delete_material">
+                                                                        <input type="hidden" name="material_id" value="<?= (int) $material['id'] ?>">
+                                                                        <button type="submit" class="btn btn-link btn-sm text-danger p-0" data-confirm="Delete this file?" aria-label="Delete <?= e($material['file_name']) ?>">
+                                                                            <i class="fas fa-times"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                <?php endif; ?>
                                                             </li>
                                                         <?php endforeach; ?>
                                                     </ul>
@@ -312,5 +333,56 @@ include __DIR__ . '/../includes/navbar.php';
         </div>
     </div>
 </div>
+
+<?php if ($is_instructor): ?>
+<!-- Edit Course Modal -->
+<div class="modal fade" id="editCourseModal" tabindex="-1" aria-labelledby="editCourseTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCourseTitle">Edit Course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="<?= e(url('actions/course.php')) ?>" method="POST">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="course_id" value="<?= (int) $course_id ?>">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label" for="editCourseName">Course Title</label>
+                        <input type="text" class="form-control" id="editCourseName" name="title" value="<?= e($course['title']) ?>" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" for="editCourseCode">Course Code</label>
+                            <input type="text" class="form-control" id="editCourseCode" name="course_code" value="<?= e($course['course_code']) ?>" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" for="editCourseCategory">Category</label>
+                            <select class="form-select" id="editCourseCategory" name="category" required>
+                                <?php foreach (course_categories() as $category): ?>
+                                    <option value="<?= e($category) ?>" <?= $category === $course['category'] ? 'selected' : '' ?>><?= e($category) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="editCourseDescription">Description</label>
+                        <textarea class="form-control" id="editCourseDescription" name="description" rows="4" required><?= e($course['description']) ?></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="editCourseLimit">Enrollment Limit</label>
+                        <input type="number" class="form-control" id="editCourseLimit" name="enrollment_limit" min="<?= max(1, (int) $course['enrolled_count']) ?>" max="500" value="<?= (int) $course['enrollment_limit'] ?>" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

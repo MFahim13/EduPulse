@@ -5,8 +5,7 @@ require_login();
 $assignment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($assignment_id == 0) {
-    header('Location: index.php');
-    exit();
+    redirect('index.php');
 }
 
 // Fetch assignment details
@@ -18,9 +17,8 @@ $stmt = query("SELECT a.*, c.title as course_title, c.instructor_id, u.name as i
 $assignment = $stmt->fetch();
 
 if (!$assignment) {
-    $_SESSION['errors'] = ["Assignment not found"];
-    header('Location: index.php');
-    exit();
+    flash('error', 'Assignment not found.');
+    redirect(current_user()['role'] === 'instructor' ? 'instructor_dashboard.php' : 'student_dashboard.php');
 }
 
 $is_instructor = ($_SESSION['role'] == 'instructor' && $assignment['instructor_id'] == $_SESSION['user_id']);
@@ -80,6 +78,22 @@ include __DIR__ . '/../includes/navbar.php';
                     <span class="badge bg-<?php echo $is_overdue ? 'danger' : 'warning'; ?> fs-6">
                         <i class="fas fa-clock"></i> Due: <?php echo date('M d, Y h:i A', $due); ?>
                     </span>
+                    <div class="mt-2 text-md-end small text-muted"><?= (int) $assignment['max_points'] ?> points</div>
+                    <?php if ($is_instructor): ?>
+                        <div class="mt-2 d-flex gap-2 justify-content-md-end">
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editAssignmentModal">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <form method="POST" action="<?= e(url('actions/assignment.php')) ?>">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="assignment_id" value="<?= (int) $assignment['id'] ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="Delete this assignment and every submission for it?">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
             
@@ -269,4 +283,51 @@ include __DIR__ . '/../includes/navbar.php';
         
     </div>
 </main>
+<?php if ($is_instructor): ?>
+<!-- Edit Assignment Modal -->
+<div class="modal fade" id="editAssignmentModal" tabindex="-1" aria-labelledby="editAssignmentTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAssignmentTitle">Edit Assignment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="<?= e(url('actions/assignment.php')) ?>" method="POST" enctype="multipart/form-data">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="assignment_id" value="<?= (int) $assignment['id'] ?>">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label" for="editAssignmentName">Title</label>
+                        <input type="text" class="form-control" id="editAssignmentName" name="title" value="<?= e($assignment['title']) ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="editAssignmentDescription">Instructions</label>
+                        <textarea class="form-control" id="editAssignmentDescription" name="description" rows="5" required><?= e($assignment['description']) ?></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" for="editAssignmentDue">Due date</label>
+                            <input type="datetime-local" class="form-control" id="editAssignmentDue" name="due_date" value="<?= e(date('Y-m-d\TH:i', strtotime($assignment['due_date']))) ?>" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" for="editAssignmentPoints">Max points</label>
+                            <input type="number" class="form-control" id="editAssignmentPoints" name="max_points" min="1" max="1000" value="<?= (int) $assignment['max_points'] ?>" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="editAssignmentFile">Replace attachment (optional)</label>
+                        <input type="file" class="form-control" id="editAssignmentFile" name="assignment_file" accept=".pdf,.doc,.docx,.txt,.zip">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php include __DIR__ . '/../includes/footer.php'; ?>

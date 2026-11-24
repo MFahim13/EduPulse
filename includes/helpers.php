@@ -136,3 +136,9 @@ function demo_login_buttons(bool $enabled): string
     }
     return $html . '</div></div>';
 }
+
+/** @return string[] */
+function course_categories(): array
+{
+    return ['Programming', 'Database', 'Web Development', 'Mobile Development'];
+}

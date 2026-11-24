@@ -181,3 +181,36 @@ function ini_bytes(string $value): int
         default => $number,
     };
 }
+
+/** @return string[] storage keys of every file belonging to a course */
+function course_file_keys(int $courseId): array
+{
+    return array_merge(
+        query('SELECT m.file_path FROM materials m JOIN modules mo ON mo.id = m.module_id WHERE mo.course_id = ?', [$courseId])->fetchAll(PDO::FETCH_COLUMN),
+        query('SELECT file_path FROM assignments WHERE course_id = ? AND file_path IS NOT NULL', [$courseId])->fetchAll(PDO::FETCH_COLUMN),
+        query('SELECT s.file_path FROM submissions s JOIN assignments a ON a.id = s.assignment_id WHERE a.course_id = ?', [$courseId])->fetchAll(PDO::FETCH_COLUMN),
+    );
+}
+
+/** @return string[] */
+function module_file_keys(int $moduleId): array
+{
+    return query('SELECT file_path FROM materials WHERE module_id = ?', [$moduleId])->fetchAll(PDO::FETCH_COLUMN);
+}
+
+/** @return string[] */
+function assignment_file_keys(int $assignmentId): array
+{
+    return array_merge(
+        query('SELECT file_path FROM assignments WHERE id = ? AND file_path IS NOT NULL', [$assignmentId])->fetchAll(PDO::FETCH_COLUMN),
+        query('SELECT file_path FROM submissions WHERE assignment_id = ?', [$assignmentId])->fetchAll(PDO::FETCH_COLUMN),
+    );
+}
+
+/** @param string[] $keys */
+function delete_uploads(array $keys): void
+{
+    foreach ($keys as $key) {
+        delete_upload($key);
+    }
+}
