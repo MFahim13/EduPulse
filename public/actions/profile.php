@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // ===== UPDATE PROFILE =====
     if ($action == 'update_profile') {
         $name = trim($_POST['name']);
-        $email = trim($_POST['email']);
+        $email = strtolower(trim($_POST['email'] ?? ''));
         $phone = trim($_POST['phone'] ?? '');
         $dob = $_POST['dob'] ?? null;
         $bio = trim($_POST['bio'] ?? '');
@@ -70,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errors[] = "All password fields are required";
         }
         
-        if (strlen($new_password) < 6) {
-            $errors[] = "New password must be at least 6 characters";
+        if (strlen($new_password) < 8) {
+            $errors[] = "New password must be at least 8 characters.";
         }
         
         if ($new_password !== $confirm_password) {

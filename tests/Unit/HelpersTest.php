@@ -61,4 +61,12 @@ final class HelpersTest extends TestCase
             $_SERVER['SCRIPT_NAME'] = $saved;
         }
     }
+
+    public function test_demo_login_buttons_empty_when_disabled(): void
+    {
+        $this->assertSame('', demo_login_buttons(false));
+        $html = demo_login_buttons(true);
+        $this->assertStringContainsString('data-demo-email="student@edupulse.test"', $html);
+        $this->assertStringContainsString('data-demo-email="instructor@edupulse.test"', $html);
+    }
 }

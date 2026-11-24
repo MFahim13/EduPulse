@@ -17,14 +17,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
             
-            if (password.length < 6) {
+            if (password.length < 8) {
                 e.preventDefault();
-                showAlert('Password must be at least 6 characters long!', 'danger');
+                showAlert('Password must be at least 8 characters long!', 'danger');
                 return false;
             }
         });
     }
     
+    // Demo login buttons: fill the login form and submit it
+    document.querySelectorAll('[data-demo-email]').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const form = document.getElementById('loginForm');
+            if (!form) return;
+            form.querySelector('#email').value = button.dataset.demoEmail;
+            form.querySelector('#password').value = button.dataset.demoPassword;
+            form.submit();
+        });
+    });
+
     // Login Form Validation
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {

@@ -118,3 +118,21 @@ function render_error_page(int $status, string $title, string $message): never
     include __DIR__ . '/error_page.php';
     exit;
 }
+
+/** One-click demo logins: the buttons fill the normal login form and submit it. */
+function demo_login_buttons(bool $enabled): string
+{
+    if (!$enabled) {
+        return '';
+    }
+    $accounts = [
+        ['instructor', 'instructor@edupulse.test', 'Instructor123!', 'fa-chalkboard-teacher'],
+        ['student', 'student@edupulse.test', 'Student123!', 'fa-user-graduate'],
+    ];
+    $html = '<div class="demo-logins mt-4"><p class="text-muted small text-center mb-2">Just looking around? Use a demo account:</p><div class="d-grid gap-2">';
+    foreach ($accounts as [$role, $email, $password, $icon]) {
+        $html .= '<button type="button" class="btn btn-outline-secondary" data-demo-email="' . e($email) . '" data-demo-password="' . e($password) . '">'
+            . '<i class="fas ' . $icon . '"></i> Log in as demo ' . $role . '</button>';
+    }
+    return $html . '</div></div>';
+}

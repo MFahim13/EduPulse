@@ -16,6 +16,7 @@ date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
 require_once PROJECT_ROOT . '/config/db.php';
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/csrf.php';
+require_once __DIR__ . '/throttle.php';
 
 configure_errors(env('APP_ENV', 'production'));
 

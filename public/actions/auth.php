@@ -12,8 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // ===== REGISTER =====
     if ($action == 'register') {
-        $name = trim($_POST['name']);
-        $email = trim($_POST['email']);
+        $name = trim($_POST['name'] ?? '');
+        $email = strtolower(trim($_POST['email'] ?? ''));
         $password = $_POST['password'];
         $confirm_password = $_POST['confirm_password'];
         $role = $_POST['role'];
@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errors[] = "Invalid email format";
         }
         
-        if (strlen($password) < 6) {
-            $errors[] = "Password must be at least 6 characters";
+        if (strlen($password) < 8) {
+            $errors[] = "Password must be at least 8 characters.";
         }
         
         if ($password !== $confirm_password) {
@@ -70,41 +70,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // ===== LOGIN =====
     if ($action == 'login') {
-        $email = trim($_POST['email']);
-        $password = $_POST['password'];
-        
-        // Validation
-        if (empty($email) || empty($password)) {
-            flash('error', "Email and password are required");
+        $email = strtolower(trim((string) ($_POST['email'] ?? '')));
+        $password = (string) ($_POST['password'] ?? '');
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        if ($email === '' || $password === '') {
+            flash('error', 'Email and password are required.');
             redirect('login.php');
         }
-        
-        // Check user in database
-        $stmt = query("SELECT * FROM users WHERE email = ?", [$email]);
-        
-        if ($stmt->rowCount() > 0) {
-            $user = $stmt->fetch();
-            
-            // Verify password
-            if (password_verify($password, $user['password'])) {
-                // New session ID on login prevents session fixation
-                session_regenerate_id(true);
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['name'] = $user['name'];
-                $_SESSION['email'] = $user['email'];
-                $_SESSION['role'] = $user['role'];
-                $_SESSION['profile_picture'] = $user['profile_picture'];
-                
-                // Redirect based on role
-                redirect($user['role'] === 'student' ? 'student_dashboard.php' : 'instructor_dashboard.php');
-            } else {
-                flash('error', "Invalid password");
-                redirect('login.php');
-            }
-        } else {
-            flash('error', "Email not found");
+
+        if (login_locked($email, $ip)) {
+            flash('error', 'Too many failed attempts. Try again in 15 minutes.');
             redirect('login.php');
         }
+
+        $user = query('SELECT * FROM users WHERE email = ?', [$email])->fetch();
+
+        if (!$user || !password_verify($password, $user['password'])) {
+            record_login_failure($email, $ip);
+            flash('error', 'Invalid email or password.');
+            redirect('login.php');
+        }
+
+        clear_login_failures($email, $ip);
+
+        // New session ID on login prevents session fixation
+        session_regenerate_id(true);
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['name'] = $user['name'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['role'] = $user['role'];
+        $_SESSION['profile_picture'] = $user['profile_picture'];
+
+        redirect($user['role'] === 'student' ? 'student_dashboard.php' : 'instructor_dashboard.php');
     }
 
     // ===== LOGOUT =====

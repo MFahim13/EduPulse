@@ -27,6 +27,7 @@ include __DIR__ . '/../includes/navbar.php';
                 Don't have an account? <a href="register.php">Register</a>
             </p>
         </form>
+        <?= demo_login_buttons(is_demo()) ?>
     </div>
 </main>
 <?php include __DIR__ . '/../includes/footer.php'; ?>
