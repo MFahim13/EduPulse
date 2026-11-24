@@ -23,6 +23,11 @@
                         </li>
                     <?php endif; ?>
                     <li class="nav-item">
+                        <a class="nav-link" href="<?= e(url('courses.php')) ?>">
+                            <i class="fas fa-compass"></i> Browse
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="<?= e(url('profile.php')) ?>">
                             <i class="fas fa-user"></i> Profile
                         </a>

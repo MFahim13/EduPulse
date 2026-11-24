@@ -1,33 +1,27 @@
+document.addEventListener('DOMContentLoaded', function () {
 
-
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // === FORM VALIDATION ===
-    
-    // Registration Form Validation
+    // === Registration form validation ===
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
-        registerForm.addEventListener('submit', function(e) {
+        registerForm.addEventListener('submit', function (e) {
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
-            
+
             if (password !== confirmPassword) {
                 e.preventDefault();
                 showAlert('Passwords do not match!', 'danger');
-                return false;
+                return;
             }
-            
             if (password.length < 8) {
                 e.preventDefault();
                 showAlert('Password must be at least 8 characters long!', 'danger');
-                return false;
             }
         });
     }
-    
-    // Demo login buttons: fill the login form and submit it
-    document.querySelectorAll('[data-demo-email]').forEach(function(button) {
-        button.addEventListener('click', function() {
+
+    // === Demo login buttons: fill the login form and submit it ===
+    document.querySelectorAll('[data-demo-email]').forEach(function (button) {
+        button.addEventListener('click', function () {
             const form = document.getElementById('loginForm');
             if (!form) return;
             form.querySelector('#email').value = button.dataset.demoEmail;
@@ -36,131 +30,68 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Login Form Validation
+    // === Login form validation ===
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
+        loginForm.addEventListener('submit', function (e) {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            
             if (!email || !password) {
                 e.preventDefault();
                 showAlert('Please fill in all fields!', 'danger');
-                return false;
             }
         });
     }
-    
-    // === FILE UPLOAD PREVIEW ===
-    const fileInputs = document.querySelectorAll('input[type="file"]');
-    fileInputs.forEach(input => {
-        input.addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name;
-            if (fileName) {
-                const label = this.nextElementSibling;
-                if (label) {
-                    label.textContent = fileName;
-                }
+
+    // === Confirm destructive actions: <button data-confirm="Are you sure?"> ===
+    document.querySelectorAll('[data-confirm]').forEach(function (button) {
+        button.addEventListener('click', function (e) {
+            if (!window.confirm(button.dataset.confirm)) {
+                e.preventDefault();
             }
         });
     });
-    
-    // === PROGRESS BAR ANIMATION ===
-    const progressBars = document.querySelectorAll('.progress-bar');
-    progressBars.forEach(bar => {
-        const targetWidth = bar.style.width;
-        bar.style.width = '0%';
-        setTimeout(() => {
-            bar.style.transition = 'width 1s ease';
-            bar.style.width = targetWidth;
-        }, 100);
-    });
-    
-    // === SEARCH FUNCTIONALITY ===
-    const searchInput = document.getElementById('courseSearch');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const courseCards = document.querySelectorAll('.course-card');
-            
-            courseCards.forEach(card => {
-                const title = card.querySelector('.course-card-title').textContent.toLowerCase();
-                const description = card.querySelector('.course-card-text').textContent.toLowerCase();
-                
-                if (title.includes(searchTerm) || description.includes(searchTerm)) {
-                    card.parentElement.style.display = 'block';
-                } else {
-                    card.parentElement.style.display = 'none';
-                }
+
+    // === Progress bars grow in on load ===
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.querySelectorAll('.progress-bar').forEach(function (bar) {
+            const target = bar.style.width;
+            bar.style.width = '0%';
+            requestAnimationFrame(function () {
+                bar.style.transition = 'width 0.8s ease';
+                bar.style.width = target;
             });
         });
     }
-    
-    // === CONFIRM DELETE ===
-    const deleteButtons = document.querySelectorAll('.btn-delete');
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to delete this item?')) {
-                e.preventDefault();
-            }
-        });
-    });
-    
-    // === ENROLLMENT CONFIRMATION ===
-    const enrollButtons = document.querySelectorAll('.btn-enroll');
-    enrollButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            if (!confirm('Do you want to enroll in this course?')) {
-                e.preventDefault();
-            }
-        });
-    });
-    
-    // === AUTO-HIDE ALERTS ===
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-        setTimeout(() => {
+
+    // === Flash messages fade out after a few seconds ===
+    document.querySelectorAll('.alert-flash').forEach(function (alert) {
+        setTimeout(function () {
             alert.style.transition = 'opacity 0.5s ease';
             alert.style.opacity = '0';
-            setTimeout(() => alert.remove(), 500);
-        }, 5000);
+            setTimeout(function () { alert.remove(); }, 500);
+        }, 6000);
     });
-    
-    // === TOOLTIP INITIALIZATION (Bootstrap) ===
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+
+    // === Bootstrap tooltips ===
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+        new bootstrap.Tooltip(el);
     });
-    
 });
 
-// === HELPER FUNCTIONS ===
-
+// Show a dismissible alert at the top of the main content.
 function showAlert(message, type = 'info') {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.role = 'alert';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    const container = document.querySelector('.container');
-    if (container) {
-        container.insertBefore(alertDiv, container.firstChild);
-        
-        setTimeout(() => {
-            alertDiv.style.opacity = '0';
-            setTimeout(() => alertDiv.remove(), 500);
-        }, 5000);
-    }
-}
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-' + type + ' alert-dismissible fade show alert-flash';
+    alert.setAttribute('role', 'alert');
+    alert.textContent = message;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'btn-close';
+    close.setAttribute('data-bs-dismiss', 'alert');
+    close.setAttribute('aria-label', 'Close');
+    alert.appendChild(close);
 
-function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-}
-
-function calculateProgress(completed, total) {
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
+    const container = document.querySelector('main .container, main') || document.body;
+    container.prepend(alert);
 }

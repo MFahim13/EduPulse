@@ -7,6 +7,9 @@ include __DIR__ . '/../includes/navbar.php';
 <main class="auth-container">
     <div class="auth-card">
         <h2>Login to EduPulse</h2>
+        <?php if (($_GET['message'] ?? '') === 'logged_out'): ?>
+            <div class="alert alert-info alert-flash" role="status"><i class="fas fa-sign-out-alt"></i> <?= e("You've been logged out.") ?></div>
+        <?php endif; ?>
         
 <?php include __DIR__ . '/../includes/flash.php'; ?>
 <form id="loginForm" action="actions/auth.php" method="POST">

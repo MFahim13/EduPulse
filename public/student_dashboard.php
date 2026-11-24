@@ -164,7 +164,10 @@ include __DIR__ . '/../includes/navbar.php';
 
             <!-- Available Courses to Enroll -->
             <div class="mb-4">
-                <h2 class="h4 mb-3">Available Courses</h2>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h4 mb-0">Available Courses</h2>
+                    <a href="<?= e(url('courses.php')) ?>" class="btn btn-sm btn-outline-primary">Browse all courses <i class="fas fa-arrow-right"></i></a>
+                </div>
                 
                 <?php if (empty($available_courses)): ?>
                     <div class="alert alert-info">

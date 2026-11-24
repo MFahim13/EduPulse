@@ -132,33 +132,10 @@ include __DIR__ . '/../includes/navbar.php';
                     </form>
                 </div>
 
-                <!-- Account Settings -->
+                <!-- Account -->
                 <div class="bg-white rounded shadow-custom p-4">
-                    <h3 class="mb-4"><i class="fas fa-cog"></i> Account Settings</h3>
-                    
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
-                        <label class="form-check-label" for="emailNotifications">
-                            Email Notifications
-                        </label>
-                    </div>
-                    
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="assignmentReminders" checked>
-                        <label class="form-check-label" for="assignmentReminders">
-                            Assignment Reminders
-                        </label>
-                    </div>
-                    
-                    <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" id="courseUpdates" checked>
-                        <label class="form-check-label" for="courseUpdates">
-                            Course Updates
-                        </label>
-                    </div>
-
-                    <hr>
-
+                    <h3 class="mb-3"><i class="fas fa-id-badge"></i> Account</h3>
+                    <p class="mb-1"><strong>Role:</strong> <?= e(ucfirst($user['role'])) ?></p>
                     <p class="text-muted small mb-2">Member since: <?php echo date('F d, Y', strtotime($user['created_at'])); ?></p>
                 </div>
             </div>

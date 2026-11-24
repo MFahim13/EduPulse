@@ -147,7 +147,7 @@ include __DIR__ . '/../includes/navbar.php';
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="action" value="delete">
                                                 <input type="hidden" name="course_id" value="<?php echo $course['id']; ?>">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger btn-delete" onclick="return confirm('Are you sure you want to delete this course?')">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="Delete this course? Its modules, assignments and submissions will be removed too.">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>

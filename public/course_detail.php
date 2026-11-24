@@ -38,12 +38,18 @@ if ($is_student) {
 $modules_stmt = query("SELECT * FROM modules WHERE course_id = ? ORDER BY module_order", [$course_id]);
 $modules = $modules_stmt->fetchAll();
 
-// Get materials for each module
-foreach ($modules as &$module) {
-    $materials_stmt = query("SELECT * FROM materials WHERE module_id = ?", [$module['id']]);
-    $module['materials'] = $materials_stmt->fetchAll();
+// Load every material for the course in one query, then group by module
+$materials_by_module = [];
+$materials = query(
+    "SELECT m.* FROM materials m JOIN modules mo ON mo.id = m.module_id WHERE mo.course_id = ? ORDER BY m.id",
+    [$course_id]
+)->fetchAll();
+foreach ($materials as $material) {
+    $materials_by_module[$material['module_id']][] = $material;
 }
-unset($module); // break the reference so later loops don't overwrite the last module
+foreach ($modules as $i => $module) {
+    $modules[$i]['materials'] = $materials_by_module[$module['id']] ?? [];
+}
 
 // Get assignments
 $assignments_stmt = query("SELECT a.*, 
