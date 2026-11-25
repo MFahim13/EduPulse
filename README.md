@@ -2,7 +2,7 @@
 
 A learning management system for instructors and students, built with plain PHP and MySQL.
 
-[![CI](https://github.com/MFahim13/EduPulse/actions/workflows/ci.yml/badge.svg)](https://github.com/MFahim13/EduPulse/actions/workflows/ci.yml)
+[![CI](https://github.com/mfahim-dev/EduPulse/actions/workflows/ci.yml/badge.svg)](https://github.com/mfahim-dev/EduPulse/actions/workflows/ci.yml)
 
 Instructors create courses, upload materials, set assignments and grade submissions with feedback. Students enroll, hand in their work and follow their progress in every course. It started as a semester project at COMSATS University Islamabad and was later rebuilt for security, tests and a cleaner interface.
 
@@ -39,7 +39,7 @@ The layout also works on phones: [mobile dashboard](docs/screenshots/07-mobile-d
 You need Docker with Docker Compose.
 
 ```bash
-git clone https://github.com/MFahim13/EduPulse.git
+git clone https://github.com/mfahim-dev/EduPulse.git
 cd EduPulse
 cp .env.example .env
 docker compose up -d
