@@ -4,17 +4,14 @@ EduPulse showcase helper (needs `pip install playwright`).
 
   python3 scripts/showcase.py --check-layout   # every page, desktop + phone: no sideways scroll, no console errors
   python3 scripts/showcase.py --screenshots    # docs/screenshots/*.png
-  python3 scripts/showcase.py --walkthrough    # docs/walkthrough.mp4 and docs/walkthrough.gif (needs ffmpeg)
 
 Set EDUPULSE_URL (default http://localhost:8080) and, to reuse an existing
 Chromium build, PLAYWRIGHT_CHROMIUM_EXECUTABLE.
 """
 import argparse
 import os
-import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -158,95 +155,15 @@ def screenshots():
         browser.close()
 
 
-def walkthrough():
-    if not shutil.which("ffmpeg"):
-        sys.exit("ffmpeg is required for --walkthrough")
-    reseed()
-    frames = Path(tempfile.mkdtemp(prefix="edupulse-frames-"))
-    count = 0
-
-    def snap(page, hold=1):
-        nonlocal count
-        page.wait_for_timeout(250)
-        for _ in range(hold):
-            page.screenshot(path=str(frames / f"{count:04d}.png"))
-            count += 1
-
-    view = {"width": 1280, "height": 720}
-    with sync_playwright() as p:
-        browser = launch(p)
-        # Instructor creates an assignment
-        ctx = browser.new_context(viewport=view)
-        page = ctx.new_page()
-        page.goto(f"{BASE}/login.php"); snap(page, 2)
-        page.fill("#email", INSTRUCTOR[0]); page.fill("#password", INSTRUCTOR[1]); snap(page)
-        page.click("#loginForm button[type=submit]"); page.wait_for_load_state("networkidle"); snap(page, 3)
-        page.click(".course-card:has-text('Introduction to Programming') a:has-text('Manage')"); page.wait_for_load_state("networkidle"); snap(page, 2)
-        page.click("button[data-bs-target='#addAssignmentModal']"); page.wait_for_selector("#addAssignmentModal.show"); snap(page)
-        modal = page.locator("#addAssignmentModal")
-        modal.locator("input[name=title]").fill("Recursion Practice"); snap(page)
-        modal.locator("textarea[name=description]").fill("Solve the three recursion exercises and explain the base case of each."); snap(page)
-        modal.locator("input[name=due_date]").fill("2030-06-01T17:00")
-        modal.locator("input[name=max_points]").fill("20"); snap(page, 2)
-        modal.locator("button[type=submit]").click(); page.wait_for_load_state("networkidle"); snap(page, 3)
-        ctx.close()
-        # Student submits
-        ctx = browser.new_context(viewport=view)
-        page = ctx.new_page()
-        login(page, STUDENT); snap(page, 3)
-        page.click(".course-card:has-text('Introduction to Programming') a:has-text('Open Course')"); page.wait_for_load_state("networkidle"); snap(page, 2)
-        page.click("text=Recursion Practice"); page.wait_for_load_state("networkidle"); snap(page, 2)
-        page.set_input_files("input[name=submission_file]", str(ROOT / "database" / "seed-files" / "student-submission.pdf")); snap(page)
-        page.click("form:has(input[name=submission_file]) button[type=submit]"); page.wait_for_load_state("networkidle"); snap(page, 3)
-        ctx.close()
-        # Instructor grades
-        ctx = browser.new_context(viewport=view)
-        page = ctx.new_page()
-        login(page, INSTRUCTOR)
-        page.click(".course-card:has-text('Introduction to Programming') a:has-text('Manage')"); page.wait_for_load_state("networkidle")
-        page.click("text=Recursion Practice"); page.wait_for_load_state("networkidle"); snap(page, 2)
-        page.click("button[data-bs-target^='#gradeModal']"); page.wait_for_selector(".modal.show"); snap(page)
-        page.locator(".modal.show input[name=grade]").fill("18")
-        page.locator(".modal.show textarea[name=feedback]").fill("Clear base cases. Add a test for n = 0."); snap(page, 2)
-        page.locator(".modal.show button[type=submit]").click(); page.wait_for_load_state("networkidle"); snap(page, 3)
-        ctx.close()
-        # Student sees the grade
-        ctx = browser.new_context(viewport=view)
-        page = ctx.new_page()
-        login(page, STUDENT)
-        page.click(".course-card:has-text('Introduction to Programming') a:has-text('Open Course')"); page.wait_for_load_state("networkidle")
-        page.click("text=Recursion Practice"); page.wait_for_load_state("networkidle"); snap(page, 5)
-        ctx.close()
-        browser.close()
-
-    docs = ROOT / "docs"
-    pattern = str(frames / "%04d.png")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "1.25", "-i", pattern,
-                    "-vf", "fps=12,format=yuv420p", "-c:v", "libx264", "-movflags", "+faststart",
-                    str(docs / "walkthrough.mp4")], check=True)
-    palette = frames / "palette.png"
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "1.25", "-i", pattern,
-                    "-vf", "scale=960:-1:flags=lanczos,palettegen=max_colors=128", str(palette)], check=True)
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "1.25", "-i", pattern, "-i", str(palette),
-                    "-lavfi", "scale=960:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5",
-                    str(docs / "walkthrough.gif")], check=True)
-    shutil.rmtree(frames)
-    reseed()
-    print("saved", docs / "walkthrough.mp4", "and", docs / "walkthrough.gif")
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check-layout", action="store_true")
     parser.add_argument("--screenshots", action="store_true")
-    parser.add_argument("--walkthrough", action="store_true")
     args = parser.parse_args()
-    if not (args.check_layout or args.screenshots or args.walkthrough):
+    if not (args.check_layout or args.screenshots):
         parser.print_help()
         sys.exit(2)
     if args.check_layout:
         check_layout()
     if args.screenshots:
         screenshots()
-    if args.walkthrough:
-        walkthrough()
